@@ -1,0 +1,19 @@
+KCPredict contains code extracted from KHQuant (MIT, copyright 2026 zhao zhenxiong).
+Its runtime has no dependency on that project.
+
+CZSC: frozen user-provided source version 1.0.1, original Apache-2.0 LICENSE
+included in resources/CZSC-LICENSE. Rust workspace metadata declares MIT.
+The full Apache-2.0 terms from https://www.apache.org/licenses/LICENSE-2.0.txt
+are additionally included in resources/CZSC-APACHE-2.0.txt. Frozen originals
+and their recorded hashes are unchanged.
+Source file hashes, original archive hash and native wheel hashes are retained
+in resources. No numerical algorithm patches were applied.
+
+Kronos: original MIT license and frozen source manifest are included in
+kcpredict/vendor/kronos. Model weights are separate and are not distributed
+with this package.
+
+The optional Codex skill integrates ICT Trading Model by carreypro (MIT,
+copyright 2026), frozen at commit 7162437e28b1f59a4b25ea88615ee99902c9cc75.
+Its scanner is locally adapted; source attribution, changes and the full MIT
+license are in skill/references/ict-provenance.md and ict-LICENSE.txt.

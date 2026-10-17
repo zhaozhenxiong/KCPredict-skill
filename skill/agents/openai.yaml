@@ -1,0 +1,4 @@
+interface:
+  display_name: "KCPredict · ICT"
+  short_description: "默认交付三个月连续时间轴HTML交互综合图，附PNG预览和预测质量"
+  default_prompt: "使用 $kcpredict 分析指定股票，默认用64条采样交付最近3个月结构、量价、ICT和未来5个交易日预测的单文件HTML交互综合图，历史与未来沿同一时间轴衔接，并展示PNG预览、SVG下载和预测质量四种状态；用户指定参数优先，重新美化沿用已评估路径，不重新采样。"

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "package": "czsc",
+  "version": "1.0.1",
+  "source_tree_sha256": "23cc880c2eccb8505a011fe61a95dd9a93cb3c8fb58ae09410a37f1e776958a7",
+  "wheels": [
+    {
+      "filename": "czsc-1.0.1-cp310-abi3-win_amd64.whl",
+      "sha256": "d11d87df958f2f909caf597c754efc4d718aee0623986d9e890dd95609b5f1e0",
+      "system": "Windows",
+      "machine": "AMD64",
+      "native_member": "czsc/_native.pyd",
+      "native_sha256": "d8a96362e7eefab35b164063a16c33b04f9123ceb89c560258da609b5d110aae",
+      "tags": [
+        "cp310-abi3-win_amd64"
+      ]
+    },
+    {
+      "filename": "czsc-1.0.1-cp310-abi3-macosx_11_0_arm64.whl",
+      "sha256": "8049dcf486a2fc228f882943d88f49340df2ac34310d5f57f6dd497f1f95a7ef",
+      "system": "Darwin",
+      "machine": "arm64",
+      "native_member": "czsc/_native.abi3.so",
+      "native_sha256": "b70ad1c10d9bcf9ed0837f5c259834b2844e033806df145be5ac395a5e386c75",
+      "tags": [
+        "cp310-abi3-macosx_11_0_arm64"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+include README.md VERIFICATION.md install.py install.sh install.bat
+include CHANGELOG.md scripts/build_release.py
+include NOTICE* LICENSE*
+recursive-include skill *
+recursive-include src/kcpredict/resources *
+recursive-include src/kcpredict/web *
+include src/kcpredict/vendor/kronos/LICENSE
+include src/kcpredict/vendor/kronos/source_manifest.json
+recursive-include tests *.py
+global-exclude __pycache__ *.py[cod] .DS_Store
+prune .venv
+prune build
+prune dist
+prune outputs

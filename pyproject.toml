@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=77,<83", "wheel>=0.45,<1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kcpredict"
+version = "0.0.1"
+description = "Standalone, local CZSC structure and Kronos path research"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license-files = ["LICENSE", "NOTICE"]
+dependencies = [
+  "numpy>=2.0,<3",
+  "pandas>=2.2,<4",
+]
+
+[project.optional-dependencies]
+predict = [
+  "torch>=2.6,<3",
+  "einops>=0.8,<0.9",
+  "safetensors>=0.5,<1",
+  "tqdm>=4.67,<5",
+]
+test = ["pytest>=8,<10"]
+charts = ["matplotlib>=3.9,<4"]
+
+[project.scripts]
+kcpredict = "kcpredict.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["kcpredict*"]
+
+[tool.setuptools.package-data]
+kcpredict = [
+  "resources/**/*",
+  "web/**/*",
+  "vendor/kronos/LICENSE",
+  "vendor/kronos/source_manifest.json",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
