@@ -1,0 +1,4 @@
+# Generated report examples are reviewed through their rendered previews.
+docs/assets/kcpredict-showcase-* linguist-generated=true
+# Matplotlib SVG path serialization includes harmless trailing whitespace.
+docs/assets/*.svg -whitespace

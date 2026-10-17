@@ -39,6 +39,14 @@ python3 SKILL_DIR/scripts/kcpredict_html.py --data ./restyled-chart/chart-data.j
 
 分开保存的预测／ICT必须与结构标的、截止和数据身份相容，错配则报错；不得把别的股票、更新日期或未来样本接入历史图。已有结果美化不重跑模型，HTML/PNG/SVG 共享同一份已评估路径与质量记录。图使用实际样本数与 horizon，不能把旧图的32条／5天写成固定数字。
 
+## 共享主题与重新导出
+
+HTML、PNG、SVG 以 HTML 为视觉基准，共用 `assets/report-theme.json` 的配色、字体和版式令牌，统一标题、质量状态、连续主图、成交量与证据摘要的视觉层级。`scripts/kcpredict_theme.py` 提供 `load_theme()` 与 `theme_identity()`；主题身份包含 `schema`、`id` 和规范 JSON 的 `sha256`，供静态图与交互图核对。不要在单个 renderer 中另存一套默认色值或依赖上一张图的样式。
+
+默认视图展示中位路径和 P10–P90，隐藏单条有效样本线；HTML 的图层开关可显示全部已有有效路径。隐藏只改变显示，`chart-data.json` 的 `prediction.samples`、原请求样本数、有效率和质量门槛均须保持原值。主题、交互和导出都不触发新推理，不修复无效价格，也不把来源未通过改成已通过。
+
+重新生成图片与 HTML 时使用同一技能版本、同一份 `chart-data.json` 和共享主题。HTML 内嵌完整主题与 `theme_identity`；静态图在 `chart-data.json` 的 `render.theme` 记录同一主题身份，`render.layer_defaults.samples=false` 记录默认隐藏样本线。比较不同交付时同时核对历史指纹、预测参数、质量状态与主题 SHA，不能仅凭配色相同认定输入相同。`manifest.json` 继续记录证据 JSON 与成品文件的 SHA；分享既有 HTML 时无需额外主题文件。
+
 ## 图内信息
 
 - **主图**：近3个月真实日线、已确认笔和形成中笔、最近回溯中枢、支撑／上沿、实际确认日。真实历史与未来日期共用连续横轴，预测从最后一个实际收盘衔接，截止线和情景区域清楚区分两者。锚点连线不表示当时已知；未来确认的笔／中枢不能显示成过去已确认。
@@ -81,4 +89,6 @@ python -m pip install 'matplotlib>=3.9,<4'
 
 离线安装先准备与目标系统／架构匹配的 Matplotlib及传递依赖 wheels。脚本发现缺依赖只给准确原因和安装命令，不自行联网。使用可用的中文字体，或 `--font` 指定本地字体；没有中文字体时以英语标签出图并记录原因。SVG内嵌字形路径，便于跨机器查看。
 
-将整个技能目录复制到目标机的 `~/.codex/skills/kcpredict/`，保留 `agents/`、`references/`、`scripts/` 和 `assets/`。脚本包括 `kcpredict_report.py`、`kcpredict_chart_data.py`、`kcpredict_chart.py` 和 `kcpredict_html.py`，以及同目录运行时分发器与 ICT 脚本。`kcpredict_html.py` 从相邻技能目录的 `assets/composite.html` 读取模板，迁移时不能漏掉该文件。模板只在生成时需要；最终 HTML 的数据、样式和脚本全内嵌，可作为单个文件离线分享。不把私人行情、模型或这次示例输出装进技能；不依赖本机 Downloads 路径。
+将整个技能目录复制到目标机的 `~/.codex/skills/kcpredict/`，保留 `agents/`、`references/`、`scripts/` 和 `assets/`。脚本包括 `kcpredict_report.py`、`kcpredict_chart_data.py`、`kcpredict_chart.py`、`kcpredict_html.py` 和共享主题 helper `kcpredict_theme.py`，以及同目录运行时分发器与 ICT 脚本。生成器按技能目录定位 `assets/composite.html` 与 `assets/report-theme.json`；生成、重新导出或引用主题时，这两个资源与 helper 必须整体复制。缺少资源应报告错误，不能悄悄退回另一套主题。
+
+模板和主题文件只在生成时需要；最终 HTML 的数据、主题、样式和脚本全内嵌，可作为单个文件离线分享，PNG/SVG 也可独立查看。独立 skill ZIP、源码包与 standalone ZIP 应同时包含主题 JSON 和 helper；运行时 wheel 本身不代替技能目录。不把私人行情、模型或这次示例输出装进技能；不依赖本机 Downloads 路径。

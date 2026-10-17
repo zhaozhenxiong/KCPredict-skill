@@ -80,6 +80,9 @@ def test_real_plot_preserves_prediction_state_and_exports(chart,tmp_path,status)
     assert evidence["meta"]["symbol"]=="600000.SH"
     assert evidence["meta"]["as_of"]==raw["as_of"]
     assert evidence["render"]["language"]=="en"
+    assert evidence["render"]["theme"]==chart.theme_identity(chart.load_theme())
+    assert result["theme"]==evidence["render"]["theme"]
+    assert evidence["render"]["layer_defaults"]["samples"] is False
     assert evidence["quality"]["structure_status"]=="unavailable"
     with Image.open(result["png"]) as image:
         assert image.size[0]>=1000 and image.size[1]>=700
@@ -123,16 +126,20 @@ def test_history_forecast_and_volume_use_one_continuous_axis_without_resampling(
         return figure
     monkeypatch.setattr(plt,"figure",capture)
     raw=source()
+    raw["frequencies"]["日线"]["bars"][0]["open"] += .4  # Exercise both candle directions.
     data=chart.prepare_chart_data(raw,prediction_payload=forecast(raw,"pass"))
     expected=copy.deepcopy(data["prediction"])
     result=chart.render(data,tmp_path,dpi=72)
     figure=figures[-1]
-    assert len(figure.axes)==3  # price, shared volume, horizontal quality strip
+    assert len(figure.axes)==3  # price, shared volume, thin quality bar in the hero
     price,volume,quality=figure.axes
-    assert price.get_position().width>.85
+    assert price.get_position().width>.8
+    assert price.get_position().width==volume.get_position().width
     assert price.get_shared_x_axes().joined(price,volume)
     assert price.get_xlim()==volume.get_xlim()
-    assert quality.get_position().y0<volume.get_position().y0
+    assert quality.get_position().y0>price.get_position().y1
+    assert quality.get_position().height<.01
+    assert price.yaxis.get_ticks_position()=="right"
     n=len(data["history"]["bars"])
     horizon=len(expected["forecast"])
     x=list(range(n-1,n+horizon))
@@ -140,10 +147,15 @@ def test_history_forecast_and_volume_use_one_continuous_axis_without_resampling(
     median=next(line for line in price.lines if line.get_gid()=="forecast_median")
     np.testing.assert_array_equal(median.get_xdata(),x)
     np.testing.assert_array_equal(median.get_ydata(),[last,*[row["close"] for row in expected["forecast"]]])
-    for index,path in enumerate(expected["samples"]):
-        sample=next(line for line in price.lines if line.get_gid()==f"forecast_sample_{index}")
-        np.testing.assert_array_equal(sample.get_xdata(),x)
-        np.testing.assert_array_equal(sample.get_ydata(),[last,*[row[3] for row in path]])
+    assert not any((line.get_gid() or "").startswith("forecast_sample_") for line in price.lines)
+    for gid,key in (("forecast_p10","close_p10"),("forecast_p90","close_p90")):
+        line=next(line for line in price.lines if line.get_gid()==gid)
+        np.testing.assert_array_equal(line.get_xdata(),x)
+        np.testing.assert_array_equal(line.get_ydata(),[last,*[row[key] for row in expected["forecast"]]])
+    terminal_labels=[text for text in price.texts if (text.get_gid() or "").startswith("forecast_terminal_label_")]
+    assert len(terminal_labels)==3
+    assert all(text.get_ha()=="right" and text.get_position()[0]<1 for text in terminal_labels)
+    assert all(text.get_transform()==price.get_yaxis_transform() for text in terminal_labels)
     band=next(collection for collection in price.collections if collection.get_gid()=="forecast_quantile_band")
     vertices=band.get_paths()[0].vertices
     for i,row in enumerate(expected["forecast"],start=n):
@@ -163,3 +175,14 @@ def test_history_forecast_and_volume_use_one_continuous_axis_without_resampling(
     assert evidence["render"]["layout"]=="single_continuous_timeline"
     assert evidence["render"]["timeline"]=={"historical_x":[0,n-1],"forecast_anchor_x":n-1,
                                            "forecast_x":list(range(n,n+horizon)),"volume_axis_shared":True}
+    from matplotlib.colors import to_rgba
+    palette=chart.load_theme()["palette"]
+    np.testing.assert_array_equal(figure.get_facecolor(),to_rgba(palette["paper"]))
+    np.testing.assert_array_equal(price.get_facecolor(),to_rgba(palette["card"]))
+    candles=[patch for patch in price.patches if patch.get_gid()=="historical_candle"]
+    assert len(candles)==n
+    for rectangle,bar in zip(candles,data["history"]["bars"]):
+        expected_color=palette["up"] if bar["close"]>=bar["open"] else palette["down"]
+        np.testing.assert_array_equal(rectangle.get_facecolor(),to_rgba(expected_color))
+    assert len([artist for artist in figure.artists if artist.get_gid()=="chart_workspace"])==1
+    assert not any("02  Prediction quality" in text.get_text() for text in figure.texts)

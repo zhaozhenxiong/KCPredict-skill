@@ -141,6 +141,44 @@ def test_future_calendar_and_valid_paths_are_copied_without_padding_or_refilteri
     assert payload["bars"][-1]["volume_mean20_prior"] == 1051534.25
 
 
+def test_generated_html_embeds_shared_style_identity_and_css_without_changing_evidence(html_report, tmp_path):
+    data = reviewed_data("fail")
+    before = copy.deepcopy(data)
+    target = tmp_path / "shared-style.html"
+    artifact = html_report.render_html(data, target)
+    embedded, inventory = embedded_payload(target)
+    identity = html_report.theme_identity(html_report.load_theme())
+    assert artifact["theme"] == embedded["theme_identity"] == identity
+    assert embedded["theme"] == html_report.load_theme()
+    assert embedded["prediction"] == html_report.build_payload(data)["prediction"]
+    assert embedded["bars"] == data["history"]["bars"]
+    assert data == before
+    text = target.read_text(encoding="utf-8")
+    assert "--paper:" + embedded["theme"]["palette"]["paper"] in text
+    assert "--up:" + embedded["theme"]["palette"]["up"] in text
+    assert "__THEME_CSS__" not in text and "__MOBILE_BREAKPOINT_PX__" not in text
+    assert not inventory.external_references
+
+
+def test_style_changes_update_shared_colors_and_identity_but_preserve_paths_and_quality(html_report, monkeypatch, tmp_path):
+    data = reviewed_data("fail")
+    changed = html_report.load_theme()
+    original_identity = html_report.theme_identity(changed)
+    changed["palette"].update(paper="#efefef", up="#c87a65", blue="#4066aa")
+    changed["typography"]["body_px"] = 15
+    monkeypatch.setattr(html_report, "load_theme", lambda: copy.deepcopy(changed))
+    target = tmp_path / "new-theme.html"
+    artifact = html_report.render_html(data, target)
+    embedded, _ = embedded_payload(target)
+    assert artifact["theme"] != original_identity
+    assert embedded["theme"]["palette"] == changed["palette"]
+    assert embedded["prediction"]["samples"] == data["prediction"]["samples"]
+    assert embedded["prediction"]["forecast"] == data["prediction"]["forecast"]
+    assert embedded["prediction"]["quality"] == data["prediction"]["quality"]
+    assert embedded["prediction"]["status"] == "fail"
+    assert "--body-px:15px" in target.read_text(encoding="utf-8")
+
+
 @pytest.mark.parametrize("damage", ["historical_forecast", "unordered_forecast", "different_calendar", "open_history"])
 def test_future_dates_never_enter_closed_history(html_report, damage):
     data = reviewed_data()

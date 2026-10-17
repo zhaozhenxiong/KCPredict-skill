@@ -9,6 +9,10 @@ import hashlib
 import json
 import math
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from kcpredict_theme import load_theme, theme_css_variables, theme_identity
 
 
 def build_payload(data: dict) -> dict:
@@ -83,6 +87,8 @@ def build_payload(data: dict) -> dict:
     raw_source = result["ict"].get("source") or {}
     result["ict"]["source"] = {key:copy.deepcopy(raw_source[key]) for key in
         ("input_schema", "input_sha256", "symbol", "data_end", "as_of", "price_basis", "data_range", "data_version") if key in raw_source}
+    result["theme"] = load_theme()
+    result["theme_identity"] = theme_identity(result["theme"])
     return result
 
 
@@ -95,12 +101,17 @@ def render_html(data: dict, output: Path) -> dict:
     encoded = encoded.replace("&", "\\u0026").replace("<", "\\u003c").replace(">", "\\u003e").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
     if text.count("__DATA_JSON__") != 1:
         raise ValueError("HTML template must contain exactly one data insertion point")
+    if text.count("__THEME_CSS__") != 1 or text.count("__MOBILE_BREAKPOINT_PX__") != 1:
+        raise ValueError("HTML template must contain the shared theme insertion points")
     text = text.replace("__DATA_JSON__", encoded)
+    text = text.replace("__THEME_CSS__", theme_css_variables(payload["theme"]))
+    text = text.replace("__MOBILE_BREAKPOINT_PX__", str(payload["theme"]["layout"]["mobile_breakpoint_px"]))
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("x", encoding="utf-8") as stream:
         stream.write(text)
     return {"schema":"kcpredict_html_artifact_v1", "symbol":payload["meta"]["symbol"],
         "data_end":payload["meta"]["data_end"], "prediction_status":payload["prediction"]["status"],
+        "theme":copy.deepcopy(payload["theme_identity"]),
         "html":str(output.resolve()), "bytes":output.stat().st_size,
         "sha256":hashlib.sha256(output.read_bytes()).hexdigest()}
 

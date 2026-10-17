@@ -1,0 +1,52 @@
+{
+  "schema": "kcpredict_showcase_assets_v1",
+  "purpose": "Fixed historical visualization example, not live market data",
+  "symbol": "002436.SZ",
+  "history": {
+    "start": "2026-07-16",
+    "end": "2026-10-16",
+    "bars": 61
+  },
+  "forecast_dates": [
+    "2026-10-19",
+    "2026-10-20",
+    "2026-10-21",
+    "2026-10-22",
+    "2026-10-23"
+  ],
+  "prediction": {
+    "status": "fail",
+    "prediction_usable": false,
+    "requested_samples": 64,
+    "valid_samples": 47,
+    "invalid_samples": 17,
+    "valid_fraction": 0.734375,
+    "minimum_valid_fraction": 0.8
+  },
+  "theme": {
+    "schema": "kcpredict_report_theme_v1",
+    "id": "kcpredict-paper-v1",
+    "sha256": "31d8c70f75328a23d794cbd6c2eb0d8e363510b97ba891553e3c56991d1b09fc"
+  },
+  "provenance": {
+    "declaration": "user_asserted",
+    "externally_verified": false
+  },
+  "files": [
+    {
+      "filename": "kcpredict-showcase-64.png",
+      "bytes": 524072,
+      "sha256": "f21507a92dd3826d1156943b5d799bf94ee2ad93fc07b4f38a3011b224138833"
+    },
+    {
+      "filename": "kcpredict-showcase-64.svg",
+      "bytes": 500100,
+      "sha256": "a121d58edf94d7a676a98d1932b5a4062a8b777d8778271b18d7125a08ef41c0"
+    },
+    {
+      "filename": "kcpredict-showcase-64.html",
+      "bytes": 201541,
+      "sha256": "446eda27c0a173871f2932ed81c55bcd35edc9ab0581885129cbe6e86cb1c196"
+    }
+  ]
+}

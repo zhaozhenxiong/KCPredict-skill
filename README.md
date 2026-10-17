@@ -2,12 +2,26 @@
 
 KCPredict 是可单独安装的本地结构分析与未来路径预测工具。安装包包含独立 Python 入口、冻结的 CZSC 原生引擎和 Kronos 推理源码；运行不需要 KHQuant 项目、服务或数据库。普通分析不联网，不自动下载行情或模型，不执行交易。
 
+## 可视化效果
+
+最近3个月的 **CZSC 结构、威科夫量价、ICT/SMC 与未来5个交易日预测**，沿同一条时间轴展示；HTML、PNG 和 SVG 共用视觉主题。
+
+![KCPredict：结构、量价、ICT与未来五日情景综合图](docs/assets/kcpredict-showcase-64.png)
+
+[下载离线演示包](https://github.com/zhaozhenxiong/KCPredict/raw/refs/heads/main/docs/assets/kcpredict-showcase-64.zip) · [交互 HTML 文件](docs/assets/kcpredict-showcase-64.html) · [高清 PNG](docs/assets/kcpredict-showcase-64.png) · [矢量 SVG](docs/assets/kcpredict-showcase-64.svg) · [功能导览](docs/showcase.md)
+
+固定历史展示样例：`002436.SZ`，截至 **2026-10-16**；64条采样中47条有效（73.4375%），**预测质量未通过**。蓝色未来路径仅为模型采样情景。HTML 下载后可离线打开；GitHub 文件页显示源码，不会直接执行交互。
+
+- **证据放在一起**：确认笔、中枢、量能、流动性候选与严格 FVG 同图查看，支持和冲突各自保留。
+- **细节可交互**：缩放、平移、逐日数值、图层开关，以及确认时间、生命周期和预测分位明细。
+- **质量可复核**：明确通过／未通过／不可用／未执行，展示真实有效样本数、比例和门槛。
+
 ## 运行环境
 
 - Python **3.12（64 位）**。
 - 结构分析使用发行包内的冻结原生引擎：**macOS Apple Silicon（arm64）**、**Windows x64（AMD64）**。当前随包二进制不支持 Linux 或 Intel Mac；这些平台需要从相同冻结来源构建匹配引擎并核验身份，不能替换成 PyPI 的其他 CZSC 版本。
 - 预测额外需要 PyTorch 等依赖和单独准备的 Kronos-base / Kronos-Tokenizer-base 权重。CPU 可运行；`auto` 根据实际可用环境选择 CUDA、MPS、CPU，明确指定不可用设备会报错。
-- 公开包不包含私人行情、日历、模型权重、账户、密钥和本机状态。预测模型文件合计约 **425 MB**；Python 和 PyTorch 安装另占磁盘空间。
+- 源码附有上方说明的固定可视化展示样例；个人行情库、运行日历、模型权重、账户、密钥和本机状态不随包提供。预测模型文件合计约 **425 MB**；Python 和 PyTorch 安装另占磁盘空间。
 
 本次实际安装验证平台和执行结果见 [VERIFICATION.md](VERIFICATION.md)。Windows、Linux、Intel Mac 未经实机验证，不等同于已通过兼容性测试。
 
@@ -43,7 +57,7 @@ python3.12 install.py --no-predict
 
 ### 在 Codex 中使用 KCPredict skill
 
-源码发行包的 `skill/` 是可独立迁移的技能目录。将整个目录复制到目标电脑的 `~/.codex/skills/kcpredict/`，确保该目录下直接是 `SKILL.md`，旁边保留 `agents/`、`references/`、`scripts/` 和 `assets/`。其中 `assets/composite.html` 是生成交互图所需的本地模板，不能只复制 Python 脚本；生成后的 `composite.html` 已全内嵌，可单独离线分享。然后为 Codex 进程设置 `KCPREDICT_PYTHON`，指向刚安装的 KCPredict 虚拟环境 Python：
+源码发行包的 `skill/` 是可独立迁移的技能目录。将整个目录复制到目标电脑的 `~/.codex/skills/kcpredict/`，确保该目录下直接是 `SKILL.md`，旁边保留 `agents/`、`references/`、`scripts/` 和 `assets/`。其中 `assets/` 同时包含 `composite.html` 模板与 `report-theme.json` 主题，迁移时还须保留 `scripts/kcpredict_theme.py`；生成后的 `composite.html` 已全内嵌，可单独离线分享。然后为 Codex 进程设置 `KCPREDICT_PYTHON`，指向刚安装的 KCPredict 虚拟环境 Python：
 
 ```sh
 export KCPREDICT_PYTHON="/path/to/KCPredict/.venv/bin/python"
@@ -61,7 +75,7 @@ Windows 的对应路径是 `C:\path\to\KCPredict\.venv\Scripts\python.exe`，可
 .venv/bin/python skill/scripts/kcpredict_report.py --symbol 002436.SZ --end 2026-10-16
 ```
 
-输出独立的新目录，包含可离线打开的 `composite.html`、PNG、SVG、各方法 JSON、预测质量和文件身份审计。HTML 内嵌数据和交互代码，不依赖 CDN 或网页服务。预测失败仍尽量保留结构、量价、ICT及原因面板；交互、布局和导出沿用原有已评估路径，不修改参数或放宽门槛。已有 JSON 美化可直接运行 `skill/scripts/kcpredict_chart.py`，再用 `skill/scripts/kcpredict_html.py --data 新图目录/chart-data.json --output 新图目录/composite.html` 生成交互文件，无需重跑模型。HTML 生成器只用标准库，PNG/SVG 需要 Matplotlib；详细参数与人工标注格式见 [综合图工作流](skill/references/chart-workflow.md)。
+输出独立的新目录，包含可离线打开的 `composite.html`、PNG、SVG、各方法 JSON、预测质量和文件身份审计。HTML 内嵌数据和交互代码，不依赖 CDN 或网页服务。HTML、PNG/SVG 以 HTML 为视觉基准，共用 `report-theme.json` 的配色、字体和版式，并记录同一主题身份。预测失败仍尽量保留结构、量价、ICT及原因面板；交互、布局和导出沿用原有已评估路径，不修改参数或放宽门槛。已有 JSON 美化可直接运行 `skill/scripts/kcpredict_chart.py`，再用 `skill/scripts/kcpredict_html.py --data 新图目录/chart-data.json --output 新图目录/composite.html` 生成交互文件，无需重跑模型。HTML 生成器只用标准库，PNG/SVG 需要 Matplotlib；详细参数与人工标注格式见 [综合图工作流](skill/references/chart-workflow.md)。
 
 已有 CLI JSON 可直接附加 ICT 扫描，无需再次运行模型：
 

@@ -32,17 +32,17 @@ ROOT_FILES = (
     "MANIFEST.in", "LICENSE", "NOTICE", "install.py", "install.sh", "install.bat",
     "scripts/build_release.py",
 )
-SOURCE_DIRECTORIES = ("src/kcpredict", "skill", "tests")
+SOURCE_DIRECTORIES = ("src/kcpredict", "skill", "tests", "docs")
 EXCLUDED_PARTS = {".git", ".venv", "venv", "outputs", "build", "dist", "wheelhouse",
                   "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache", ".cache"}
 PRIVATE_SUFFIXES = {".csv", ".tsv", ".db", ".sqlite", ".sqlite3", ".safetensors", ".pt", ".pth",
                     ".ckpt", ".bin", ".parquet", ".npy", ".npz", ".pkl", ".pickle", ".pem",
                     ".key", ".p12", ".pfx", ".log"}
 MINIMUM_EPOCH = 315532800  # ZIP's earliest representable date: 1980-01-01 UTC.
-REQUIRED_SKILL = {"SKILL.md", "LICENSE", "agents/openai.yaml", "assets/composite.html",
+REQUIRED_SKILL = {"SKILL.md", "LICENSE", "agents/openai.yaml", "assets/composite.html", "assets/report-theme.json",
                   "scripts/kcpredict.py", "scripts/ict_scan.py", "scripts/kcpredict_ict.py",
                   "scripts/kcpredict_chart_data.py", "scripts/kcpredict_chart.py",
-                  "scripts/kcpredict_html.py", "scripts/kcpredict_report.py",
+                  "scripts/kcpredict_html.py", "scripts/kcpredict_report.py", "scripts/kcpredict_theme.py",
                   "references/ict-LICENSE.txt", "references/ict-provenance.md"}
 
 

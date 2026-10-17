@@ -2,6 +2,7 @@ include README.md VERIFICATION.md install.py install.sh install.bat
 include CHANGELOG.md scripts/build_release.py
 include NOTICE* LICENSE*
 recursive-include skill *
+recursive-include docs *
 recursive-include src/kcpredict/resources *
 recursive-include src/kcpredict/web *
 include src/kcpredict/vendor/kronos/LICENSE
