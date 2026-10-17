@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kcpredict"
-version = "0.0.1"
+version = "0.0.2"
 description = "Standalone, local CZSC structure and Kronos path research"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"

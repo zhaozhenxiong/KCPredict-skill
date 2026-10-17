@@ -2,6 +2,8 @@
 
 KCPredict 是可单独安装的本地结构分析与未来路径预测工具。安装包包含独立 Python 入口、冻结的 CZSC 原生引擎和 Kronos 推理源码；运行不需要 KHQuant 项目、服务或数据库。普通分析不联网，不自动下载行情或模型，不执行交易。
 
+[下载 v0.0.2](https://github.com/zhaozhenxiong/KCPredict/releases/tag/v0.0.2) · [版本记录](CHANGELOG.md)
+
 ## 可视化效果
 
 最近3个月的 **CZSC 结构、威科夫量价、ICT/SMC 与未来5个交易日预测**，沿同一条时间轴展示；HTML、PNG 和 SVG 共用视觉主题。
@@ -89,7 +91,7 @@ python3 skill/scripts/kcpredict_ict.py --input ./research.json --frequency 日�
 有 Python 包管理经验时，也可在自建 Python 3.12 虚拟环境中安装发行 wheel：
 
 ```sh
-python -m pip install "/path/to/kcpredict-0.0.1-py3-none-any.whl[predict,charts]"
+python -m pip install "/path/to/kcpredict-0.0.2-py3-none-any.whl[predict,charts]"
 kcpredict status
 ```
 
