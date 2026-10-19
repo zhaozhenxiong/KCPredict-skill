@@ -77,10 +77,13 @@ def _verify(path: Path, entry: dict) -> dict:
         else:
             result = cached
         after = os.fstat(handle.fileno())
-        if (_stat_identity(after) != _stat_identity(before)
-                or _stat_identity(path.stat()) != _stat_identity(after)
-                or (version is not None and _memo_version(after) != version)
-                or (raw is not None and path.read_bytes() != raw)):
+        changed = _stat_identity(after) != _stat_identity(before)
+        if not _WINDOWS:
+            changed = changed or _stat_identity(path.stat()) != _stat_identity(after)
+        changed = (changed
+                   or (version is not None and _memo_version(after) != version)
+                   or (raw is not None and path.read_bytes() != raw))
+        if changed:
             raise ValueError('Kronos asset changed during verification')
         if key is not None and cached is None:
             for old in [item for item in _VERIFIED if item[0] == str(path)]:

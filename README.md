@@ -91,7 +91,7 @@ python3 skill/scripts/kcpredict_ict.py --input ./research.json --frequency 日�
 有 Python 包管理经验时，也可在自建 Python 3.12 虚拟环境中安装发行 wheel：
 
 ```sh
-python -m pip install "/path/to/kcpredict-0.0.2-py3-none-any.whl[predict,charts]"
+python -m pip install "/path/to/kcpredict-0.0.3-py3-none-any.whl[predict,charts]"
 kcpredict status
 ```
 

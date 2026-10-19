@@ -112,5 +112,5 @@ def test_standalone_cli_executes_from_an_unrelated_directory(tmp_path, explicit_
     result = subprocess.run([sys.executable, str(SCRIPT), "--version"],
                             cwd=tmp_path, env=environment, capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
-    assert result.stdout.strip() == "0.0.2"
+    assert result.stdout.strip() == "0.0.3"
     assert not (tmp_path / "private-state").exists()

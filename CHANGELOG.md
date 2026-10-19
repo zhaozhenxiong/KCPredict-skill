@@ -1,5 +1,9 @@
 # 版本记录
 
+## v0.0.3（2026-10-19）
+
+- 修复 Windows 上模型资产核验误报 "Kronos asset changed during verification"：`path.stat()` 与 `os.fstat()` 在 Windows 对同一打开文件返回不一致的 stat 元组，Windows 下跳过路径/句柄交叉检查；fstat 前后对比、SHA-256/git-blob 内容校验与原始字节重读保持不变。
+
 ## v0.0.2（2026-10-17）
 
 - HTML、PNG 与 SVG 共用报告主题，静态图片沿用 HTML 的配色、字体和版式。
