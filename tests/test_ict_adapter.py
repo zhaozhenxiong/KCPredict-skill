@@ -143,6 +143,10 @@ def test_zero_closed_bars_is_auditable_unavailable(adapter):
 def run_cli(input_path, *arguments, cwd):
     environment = dict(os.environ)
     environment.pop("PYTHONPATH", None)
+    if os.name == "nt":
+        import tzdata
+        # -S hides site-packages; supply IANA data like a Unix system TZPATH.
+        environment["PYTHONTZPATH"] = str((Path(tzdata.__file__).parent / "zoneinfo").resolve())
     return subprocess.run([sys.executable, "-I", "-S", str(SCRIPT), "--input", str(input_path), *arguments],
                           cwd=cwd, env=environment, capture_output=True, text=True)
 

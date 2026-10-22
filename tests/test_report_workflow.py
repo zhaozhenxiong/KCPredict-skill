@@ -93,7 +93,7 @@ def fake_runner(monkeypatch, report, *, prediction_code=2, prediction_payload=Tr
 
 
 def load_manifest(folder):
-    return json.loads((folder / "manifest.json").read_text())
+    return json.loads((folder / "manifest.json").read_text(encoding="utf-8"))
 
 
 def test_default_workflow_preserves_quality_exit_two_without_retries(report, monkeypatch, tmp_path):

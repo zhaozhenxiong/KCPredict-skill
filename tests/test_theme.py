@@ -21,17 +21,26 @@ def theme_module():
     return module
 
 
-def test_shared_asset_keeps_the_established_html_palette(theme_module):
+def test_shared_asset_inherits_the_structure_analysis_palette(theme_module):
     theme = theme_module.load_theme()
     assert theme["schema"] == "kcpredict_report_theme_v1"
-    assert theme["id"] == "kcpredict-paper-v1"
-    expected = {"paper": "#f5f6f2", "card": "#ffffff", "ink": "#203c48",
-                "up": "#c86c58", "down": "#3c8b80", "blue": "#4275cd",
-                "gold": "#b28f43", "purple": "#8c77ac", "amber": "#a56327"}
+    assert theme["id"] == "kcpredict-structure-analysis-v1"
+    expected = {"paper": "#f1f4f7", "card": "#ffffff", "ink": "#253549",
+                "muted": "#617184", "line": "#dce3eb", "accent": "#376b91",
+                "up": "#bf565d", "down": "#327c6c", "blue": "#2f76b7",
+                "gold": "#9b5f17", "purple": "#6d28d9", "amber": "#d97706",
+                "zone_up": "#bf565d", "zone_down": "#327c6c", "fvg": "#0f766e",
+                "ict_buy": "#0f766e", "ict_sell": "#6d28d9",
+                "wyckoff_buy": "#d97706", "wyckoff_sell": "#3b82f6"}
     assert {key: theme["palette"][key] for key in expected} == expected
     assert theme_module.CORE_COLORS.issubset(theme["palette"])
-    assert theme["layout"]["chart_height_px"] == 550
+    assert theme["layout"]["chart_height_px"] == 570
+    assert theme["layout"]["max_width_px"] == 1800
+    assert theme["layout"]["sidebar_width_px"] == 275
+    assert theme["layout"]["workspace_gap_px"] == 20
     assert theme["typography"]["body_px"] == 14
+    assert theme["typography"]["chart_px"] == 11
+    assert theme["typography"]["font_stack"] == '"Microsoft YaHei UI","Noto Sans SC","PingFang SC",sans-serif'
 
 
 def test_theme_loads_are_independent_and_hash_ignores_json_formatting(theme_module, tmp_path):
@@ -54,7 +63,8 @@ def test_css_variables_share_the_only_up_down_color_source(theme_module):
     assert "--up:#123456" in css and "--red:#123456" in css
     assert "--teal:" + theme["palette"]["down"] in css
     assert "--body-px:14px" in css
-    assert "--chart-height-px:550px" in css
+    assert "--chart-height-px:570px" in css
+    assert "--sidebar-width-px:275px" in css
     assert "--font-stack:" + theme["typography"]["font_stack"] in css
 
 
@@ -89,7 +99,7 @@ def test_template_has_no_separate_core_color_constants(theme_module):
     assert template.count("__THEME_CSS__") == 1
     assert "palette=theme.palette" in template
     assert "up:palette.up" in template and "down:palette.down" in template
-    assert "palette.zone_fill" in template and "palette.band" in template
+    assert "palette.zone_up" in template and "palette.zone_down" in template and "palette.band" in template
 
 
 def test_missing_theme_asset_is_an_explicit_error(theme_module, tmp_path):

@@ -41,6 +41,12 @@ python3 SKILL_DIR/scripts/kcpredict_html.py --data ./restyled-chart/chart-data.j
 
 ## 共享主题与重新导出
 
+默认绘图继承 `structure-analysis` 的亮色分析工作台风格：灰蓝页面、白色图表卡、红涨绿跌 K 线、蓝色确认笔与虚线形成中笔、按方向着色的轻填充中枢，以及左图右侧方法证据栏。窄屏时证据栏移到图表下方。HTML 可点击固定日期，使用“取消固定”或 Esc 解除；缩放、图层开关、未来逐日明细和数据导出继续可用。PNG/SVG 使用同一主题与左右布局。
+
+主题身份为 `kcpredict-structure-analysis-v1`。迁移只影响已有图层的呈现；沿用 KCPredict 自己的研究数据契约，不引入参考模板的演示数据、仓位、联合模型或交易结论。旧成品保留原样；重新绘图时写入新目录。
+
+`kcpredict serve` 的独立网页入口 `src/kcpredict/web/index.html` 同步使用这套亮色工作台的配色、字体、右侧价格轴与“事件与依据”侧栏。该入口继续使用原有本地接口、周期切换、导入与预测表功能。
+
 HTML、PNG、SVG 以 HTML 为视觉基准，共用 `assets/report-theme.json` 的配色、字体和版式令牌，统一标题、质量状态、连续主图、成交量与证据摘要的视觉层级。`scripts/kcpredict_theme.py` 提供 `load_theme()` 与 `theme_identity()`；主题身份包含 `schema`、`id` 和规范 JSON 的 `sha256`，供静态图与交互图核对。不要在单个 renderer 中另存一套默认色值或依赖上一张图的样式。
 
 默认视图展示中位路径和 P10–P90，隐藏单条有效样本线；HTML 的图层开关可显示全部已有有效路径。隐藏只改变显示，`chart-data.json` 的 `prediction.samples`、原请求样本数、有效率和质量门槛均须保持原值。主题、交互和导出都不触发新推理，不修复无效价格，也不把来源未通过改成已通过。

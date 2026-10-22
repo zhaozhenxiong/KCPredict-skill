@@ -2,15 +2,15 @@
 
 KCPredict 是可单独安装的本地结构分析与未来路径预测工具。安装包包含独立 Python 入口、冻结的 CZSC 原生引擎和 Kronos 推理源码；运行不需要 KHQuant 项目、服务或数据库。普通分析不联网，不自动下载行情或模型，不执行交易。
 
-[下载 v0.0.2](https://github.com/zhaozhenxiong/KCPredict/releases/tag/v0.0.2) · [版本记录](CHANGELOG.md)
+[下载 v0.0.4](https://github.com/zhaozhenxiong/KCPredict-skill/releases/tag/v0.0.4) · [版本记录](CHANGELOG.md)
 
 ## 可视化效果
 
-最近3个月的 **CZSC 结构、威科夫量价、ICT/SMC 与未来5个交易日预测**，沿同一条时间轴展示；HTML、PNG 和 SVG 共用视觉主题。
+最近3个月的 **CZSC 结构、威科夫量价、ICT/SMC 与未来5个交易日预测**，沿同一条时间轴展示；HTML、PNG 和 SVG 共用结构分析工作台主题：灰蓝背景、红涨绿跌、蓝色笔、轻填充中枢与右侧证据栏。
 
 ![KCPredict：结构、量价、ICT与未来五日情景综合图](docs/assets/kcpredict-showcase-64.png)
 
-[下载离线演示包](https://github.com/zhaozhenxiong/KCPredict/raw/refs/heads/main/docs/assets/kcpredict-showcase-64.zip) · [交互 HTML 文件](docs/assets/kcpredict-showcase-64.html) · [高清 PNG](docs/assets/kcpredict-showcase-64.png) · [矢量 SVG](docs/assets/kcpredict-showcase-64.svg) · [功能导览](docs/showcase.md)
+[下载离线演示包](https://github.com/zhaozhenxiong/KCPredict-skill/raw/refs/heads/main/docs/assets/kcpredict-showcase-64.zip) · [交互 HTML 文件](docs/assets/kcpredict-showcase-64.html) · [高清 PNG](docs/assets/kcpredict-showcase-64.png) · [矢量 SVG](docs/assets/kcpredict-showcase-64.svg) · [功能导览](docs/showcase.md)
 
 固定历史展示样例：`002436.SZ`，截至 **2026-10-16**；64条采样中47条有效（73.4375%），**预测质量未通过**。蓝色未来路径仅为模型采样情景。HTML 下载后可离线打开；GitHub 文件页显示源码，不会直接执行交互。
 
@@ -25,7 +25,7 @@ KCPredict 是可单独安装的本地结构分析与未来路径预测工具。�
 - 预测额外需要 PyTorch 等依赖和单独准备的 Kronos-base / Kronos-Tokenizer-base 权重。CPU 可运行；`auto` 根据实际可用环境选择 CUDA、MPS、CPU，明确指定不可用设备会报错。
 - 源码附有上方说明的固定可视化展示样例；个人行情库、运行日历、模型权重、账户、密钥和本机状态不随包提供。预测模型文件合计约 **425 MB**；Python 和 PyTorch 安装另占磁盘空间。
 
-本次实际安装验证平台和执行结果见 [VERIFICATION.md](VERIFICATION.md)。Windows、Linux、Intel Mac 未经实机验证，不等同于已通过兼容性测试。
+本次实际安装验证平台和执行结果见 [VERIFICATION.md](VERIFICATION.md)。本次新增 Windows x64 的绘图、网页入口、测试与发行包核查；Linux、Intel Mac 的平台限制与既有验证记录见该文件。
 
 ## 独立安装
 
@@ -91,7 +91,7 @@ python3 skill/scripts/kcpredict_ict.py --input ./research.json --frequency 日�
 有 Python 包管理经验时，也可在自建 Python 3.12 虚拟环境中安装发行 wheel：
 
 ```sh
-python -m pip install "/path/to/kcpredict-0.0.3-py3-none-any.whl[predict,charts]"
+python -m pip install "/path/to/kcpredict-0.0.4-py3-none-any.whl[predict,charts]"
 kcpredict status
 ```
 

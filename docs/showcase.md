@@ -4,7 +4,7 @@ KCPredict 将结构、量价、ICT 和未来路径放在一张连续时间轴上
 
 ![三个月综合研究与未来五日情景](assets/kcpredict-showcase-64.png)
 
-[下载完整离线演示包](https://github.com/zhaozhenxiong/KCPredict/raw/refs/heads/main/docs/assets/kcpredict-showcase-64.zip) · [HTML 文件](assets/kcpredict-showcase-64.html) · [PNG](assets/kcpredict-showcase-64.png) · [SVG](assets/kcpredict-showcase-64.svg)
+[下载完整离线演示包](https://github.com/zhaozhenxiong/KCPredict-skill/raw/refs/heads/main/docs/assets/kcpredict-showcase-64.zip) · [HTML 文件](assets/kcpredict-showcase-64.html) · [PNG](assets/kcpredict-showcase-64.png) · [SVG](assets/kcpredict-showcase-64.svg)
 
 解压演示包，用浏览器打开其中的 `kcpredict-showcase-64.html` 即可。HTML 已内嵌数据、样式和脚本，无需联网、启动服务或安装运行时。GitHub 仓库中的 HTML 文件页用于查看和下载源码，不是在线运行入口。
 
@@ -18,15 +18,15 @@ KCPredict 将结构、量价、ICT 和未来路径放在一张连续时间轴上
 | ICT / SMC | 查看扫荡候选、严格三K线 FVG、MSS 参考，以及确认日期和生命周期；机械证据不会自动升级为最终确认。 |
 | 未来逐日明细 | 展示收盘中位数、P10–P90、相对末收盘变化与模型中位量。 |
 | 质量状态 | 明确通过、未通过、不可用和未执行；查看有效样本数量、比例、门槛及缺失原因。 |
-| 统一外观 | HTML、PNG、SVG 共享米白背景、红涨绿跌、右侧价格轴与三栏证据摘要，并记录同一主题身份。 |
+| 统一外观 | HTML、PNG、SVG 共享灰蓝工作台背景、红涨绿跌、蓝色笔、右侧价格轴与方法证据侧栏，并记录同一主题身份。 |
 
 ## HTML 交互
 
 1. 用“完整窗口”查看三个月，用“20根＋预测”放大近期结构与未来五日。
-2. 滚轮缩放、拖动平移；移动到K线或未来日期查看数值，点击可锁定日期。
+2. 滚轮缩放、拖动平移；移动到K线或未来日期查看数值，点击可锁定日期；使用“取消固定”或 Esc 解除。
 3. 切换结构、ICT、预测、分位带、有效样本路径和成交量图层。默认隐藏单条样本线，完整数据仍保留。
-4. 在“证据与共振”“未来逐日明细”“数据与质量”中核查结论、日期、参数和质量原因。
-5. 展开确认时间与生命周期，或导出当前示例的内嵌数据。
+4. 在右侧“事件与依据”以及“历史结构与确认时间”“未来逐日明细”“数据与质量”中核查结论、日期、参数和质量原因。
+5. 查看确认时间与生命周期，或导出当前示例的内嵌数据。
 
 ## 固定示例与质量
 

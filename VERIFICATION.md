@@ -1,5 +1,15 @@
 # KCPredict 发布与验证记录
 
+## v0.0.4 结构分析工作台风格（2026-10-22）
+
+本次在 Windows x64、Python 3.12 执行完整测试：**335 passed，53 subtests passed**。新增主题、HTML/静态绘图、数据和质量边界、CLI/server、技能分发与打包约束均通过。Windows 测试显式读取 UTF-8 文件、为隔离子进程指定已安装 IANA 时区数据目录，并在 POSIX 缓存单元测试中排除 Windows 路径/句柄创建时间差异；生产模型核验继续保留 v0.0.3 修复。
+
+HTML、PNG、SVG 的共享主题改为 `kcpredict-structure-analysis-v1`，规范主题 SHA 为 `b5d2fc015c6e3223c535b87d9e7488e5ec5dfb71cb93da22565794e444b167a5`。离线图采用左图右证据栏；实际浏览器验证桌面与 390px 窄屏、时间窗口、图层开关、日期固定/解除、预测明细，并检查无 NaN 几何与页面横向溢出。本地 `serve` 网页同步配色、字体、右侧价格轴和事件依据侧栏，实际状态接口可读。
+
+公开展示继续使用此前已发布的固定样例：002436.SZ，截至 2026-10-16，61 根历史日线、未来 5 日，64 条请求采样中 47 条有效，预测质量未通过。重新导出的 HTML 与旧公开 HTML 内嵌数据逐字段比较，除主题与主题身份外完全一致；用于静态均量线的计算预热与已公开均量值逐项核验。未重新运行 Kronos 推理，未改变历史、预测路径、参数或质量门槛，未将本地其它研究图或完整行情库加入公开展示。
+
+发行使用提交后的 Git 原始文件快照构建，避免 Windows checkout 行尾转换破坏冻结资源字节身份。`scripts/build_release.py` 核查允许清单、版本、许可证、冻结 CZSC 源码和两份原生 wheel、Kronos 源码，以及 wheel/sdist/standalone/skill 四类附件的逐文件身份；附件清单与 SHA 见 `assets-manifest.json` 和 `SHA256SUMS`。用户行情、运行日历、模型权重、凭证、虚拟环境及本机研究输出均不收录。本次未新增 macOS、Linux 或 Intel Mac 的运行验证。
+
 ## v0.0.2 共享主题与展示资源（2026-10-17）
 
 Python 包、CLI 和发行附件版本统一为 `0.0.2`。HTML、PNG、SVG 共用 `skill/assets/report-theme.json` 与主题加载脚本；主题 SHA 为 `31d8c70f75328a23d794cbd6c2eb0d8e363510b97ba891553e3c56991d1b09fc`。项目技能与本机安装技能忽略 Python 缓存后，20 个文件逐字一致；两份技能的 frontmatter 与资源校验均通过。

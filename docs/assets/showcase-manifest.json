@@ -25,8 +25,8 @@
   },
   "theme": {
     "schema": "kcpredict_report_theme_v1",
-    "id": "kcpredict-paper-v1",
-    "sha256": "31d8c70f75328a23d794cbd6c2eb0d8e363510b97ba891553e3c56991d1b09fc"
+    "id": "kcpredict-structure-analysis-v1",
+    "sha256": "b5d2fc015c6e3223c535b87d9e7488e5ec5dfb71cb93da22565794e444b167a5"
   },
   "provenance": {
     "declaration": "user_asserted",
@@ -35,18 +35,18 @@
   "files": [
     {
       "filename": "kcpredict-showcase-64.png",
-      "bytes": 524072,
-      "sha256": "f21507a92dd3826d1156943b5d799bf94ee2ad93fc07b4f38a3011b224138833"
+      "bytes": 421753,
+      "sha256": "3fa921a9910df95406bf516d46731b922c7d2bb3170550f0368b7b6005175f8d"
     },
     {
       "filename": "kcpredict-showcase-64.svg",
-      "bytes": 500100,
-      "sha256": "a121d58edf94d7a676a98d1932b5a4062a8b777d8778271b18d7125a08ef41c0"
+      "bytes": 344502,
+      "sha256": "16dea28b9e686f9ab184afe51c50ebea25f8d5137d969a0780c0e0b1ee3425c5"
     },
     {
       "filename": "kcpredict-showcase-64.html",
-      "bytes": 201541,
-      "sha256": "446eda27c0a173871f2932ed81c55bcd35edc9ab0581885129cbe6e86cb1c196"
+      "bytes": 206950,
+      "sha256": "21fcc5553c378772732158cd731ba2a15e0127ad038ae90f616ff95c5813cab0"
     }
   ]
 }

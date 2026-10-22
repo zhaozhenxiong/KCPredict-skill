@@ -245,6 +245,11 @@ def test_windows_weight_rehashes_even_with_identical_file_metadata(tmp_path, mon
 def test_posix_weight_memo_is_bounded_and_binds_the_whole_pin(tmp_path, monkeypatch):
     path, entry = pin(tmp_path)
     monkeypatch.setattr(assets, '_WINDOWS', False)
+    if assets.os.name == 'nt':
+        # Windows stat/fstat can disagree on creation time. This unit test
+        # exercises POSIX memoization with stable file metadata.
+        stat_identity = assets._stat_identity
+        monkeypatch.setattr(assets, '_stat_identity', lambda info: stat_identity(info)[:-1])
     observed = []
     original = assets.hashlib.file_digest
 
@@ -523,6 +528,6 @@ def test_vendored_algorithm_files_verify_and_have_no_project_imports():
     assert len(identity['vendor_sha256']) == len(identity['adapter_sha256']) == 64
     root = Path(prediction.__file__).parent
     for path in (root / 'prediction.py', root / 'model_assets.py'):
-        code = path.read_text()
+        code = path.read_text(encoding="utf-8")
         assert 'from my_strategy' not in code and 'import my_strategy' not in code
         assert 'KHQUANT_' not in code

@@ -31,12 +31,12 @@ def read_json(path: Path | None) -> Any:
 def configure_font(font_manager, ft2font, explicit: Path | None) -> tuple[str, bool]:
     """Use an available CJK font; ship English labels when none is installed."""
     paths = [explicit] if explicit else []
-    paths += [Path("/System/Library/Fonts/Hiragino Sans GB.ttc"),
+    paths += [Path(os.environ.get("WINDIR", "C:/Windows"))/"Fonts/msyh.ttc",
+              Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"),
               Path("/System/Library/Fonts/PingFang.ttc"),
-              Path("/System/Library/Fonts/Supplemental/Arial Unicode.ttf"),
-              Path(os.environ.get("WINDIR", "C:/Windows"))/"Fonts/msyh.ttc",
-              Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc")]
-    preferred = ("Noto Sans CJK SC", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB",
+              Path("/System/Library/Fonts/Hiragino Sans GB.ttc"),
+              Path("/System/Library/Fonts/Supplemental/Arial Unicode.ttf")]
+    preferred = ("Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans SC", "Noto Sans CJK SC", "PingFang SC", "Hiragino Sans GB",
                  "Arial Unicode MS", "SimHei", "Heiti SC", "WenQuanYi Zen Hei")
     paths += [Path(f.fname) for name in preferred for f in font_manager.fontManager.ttflist if f.name == name]
     if explicit and not explicit.is_file():
@@ -60,6 +60,7 @@ def render(data: dict, output_dir: Path, *, font_path: Path | None = None, dpi: 
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
         from matplotlib import font_manager, ft2font
+        from matplotlib.colors import to_rgba
         from matplotlib.lines import Line2D
         from matplotlib.patches import FancyBboxPatch, Patch, Rectangle
         from matplotlib.ticker import MaxNLocator
@@ -153,18 +154,25 @@ def render(data: dict, output_dir: Path, *, font_path: Path | None = None, dpi: 
     rate = quality.get("valid_fraction")
     forecast_rows = prediction.get("forecast") or []
     horizon = len(forecast_rows) or (prediction.get("parameters") or {}).get("horizon",5)
-    fig.add_artist(FancyBboxPatch((.055,.300),.890,.470,boxstyle="round,pad=0,rounding_size=.008",
+    workspace_left, workspace_right = .04, .96
+    sidebar_width = layout["sidebar_width_px"] / layout["max_width_px"]
+    workspace_gap = layout["workspace_gap_px"] / layout["max_width_px"]
+    sidebar_left = workspace_right - sidebar_width
+    chart_right = sidebar_left - workspace_gap
+    plot_left, plot_width = workspace_left + .016, chart_right - workspace_left - .052
+    fig.add_artist(FancyBboxPatch((workspace_left,.160),chart_right-workspace_left,.610,boxstyle="round,pad=0,rounding_size=.008",
         transform=fig.transFigure,facecolor=COLORS["card"],edgecolor=COLORS["line"],lw=.7,zorder=-10,gid="chart_workspace"))
-    fig.text(.071,.742,t("价格、结构与未来路径","PRICE, STRUCTURE AND SCENARIOS"),
+    fig.add_artist(FancyBboxPatch((sidebar_left,.160),sidebar_width,.610,boxstyle="round,pad=0,rounding_size=.008",
+        transform=fig.transFigure,facecolor=COLORS["card"],edgecolor=COLORS["line"],lw=.7,zorder=-10,gid="evidence_sidebar"))
+    fig.text(plot_left,.742,t("价格、结构与未来路径","PRICE, STRUCTURE AND SCENARIOS"),
         fontsize=11.5,fontweight="semibold",color=COLORS["ink"])
     fig.text(.285,.743,t(f"近{meta['months']}个月 · 连续时间轴",f"{meta['months']} months · continuous timeline"),
         fontsize=8.5,color=COLORS["muted"])
-    ax = fig.add_axes([.071,.435,.838,.252],facecolor=COLORS["card"])
-    vx = fig.add_axes([.071,.356,.838,.060],sharex=ax,facecolor=COLORS["card"])
+    ax = fig.add_axes([plot_left,.335,plot_width,.350],facecolor=COLORS["card"])
+    vx = fig.add_axes([plot_left,.235,plot_width,.075],sharex=ax,facecolor=COLORS["card"])
     qx = fig.add_axes([.720,.827,.225,.004],facecolor=COLORS["paper"])
     for axis in (ax,vx):
-        axis.spines[["top","left"]].set_visible(False)
-        axis.spines[["bottom","right"]].set_color(COLORS["line"])
+        axis.spines[["top","left","bottom","right"]].set_visible(False)
         axis.grid(axis="y",color=COLORS["grid"],lw=.65)
         axis.set_axisbelow(True)
         axis.yaxis.tick_right()
@@ -204,12 +212,11 @@ def render(data: dict, output_dir: Path, *, font_path: Path | None = None, dpi: 
         return n-1 if end or key > str(latest["time"])[:10] else 0
 
     visible_zones=[z for z in data.get("zones",[]) if z.get("display_confirmed") and str(z.get("end_time",""))[:10] >= str(first["time"])[:10]][-2:]
-    for j,z in enumerate(visible_zones):
-        color=COLORS["gold"] if j==len(visible_zones)-1 else COLORS["muted"]
+    for z in visible_zones:
+        color=COLORS["zone_up"] if z.get("direction")=="up" else COLORS["zone_down"] if z.get("direction")=="down" else COLORS["muted"]
         x0,x1=xpos(z["start_time"]),xpos(z["end_time"],end=True)
         ax.add_patch(Rectangle((x0,z["low"]),max(x1-x0,.6),z["high"]-z["low"],
-            facecolor=COLORS["zone_fill"] if j==len(visible_zones)-1 else COLORS["zone_fill_muted"],
-            edgecolor=COLORS["zone_edge"],lw=.7,ls=(0,(4,3)),alpha=.65,zorder=0))
+            facecolor=to_rgba(color,.09),edgecolor=to_rgba(color,.65),lw=.7,ls="-",zorder=0,gid="confirmed_zone"))
         caption=f"{number(z['low'])}–{number(z['high'])}"
         when=str(z.get("confirmation_time") or z.get("confirmed_at") or "")[:10]
         caption+=" · "+t("确认 ","Known ")+(when or t("未核验","unverified"))
@@ -219,15 +226,16 @@ def render(data: dict, output_dir: Path, *, font_path: Path | None = None, dpi: 
             continue
         confirmed=pen.get("display_confirmed") is True
         ax.plot([xpos(pen["start_time"]),xpos(pen["end_time"])],[pen["start_price"],pen["end_price"]],
-            color=COLORS["gold"],lw=1.9 if confirmed else 1.2,ls="-" if confirmed else "--",alpha=.95,zorder=5)
+            color=COLORS["accent"],lw=1.5,ls="-" if confirmed else "--",alpha=.95,zorder=5,
+            gid="confirmed_pen" if confirmed else "forming_pen")
     # Only eligible, observed source facts can mark the known confirmation day.
     facts=[f for f in structure.get("support_facts",[]) if str(f.get("first_confirmed_at") or f.get("confirmed_at") or "")[:10] == str(latest["time"])[:10]]
     labels=list(dict.fromkeys(str(f.get("label")) for f in facts if f.get("label") not in (None,"其他")))
     if labels:
         text=" / ".join(labels) if chinese else t("来源形态确认","Source pattern confirmed")
-        ax.scatter([n-1],[last_close],marker="D",s=20,color=COLORS["gold"],zorder=10)
+        ax.scatter([n-1],[last_close],marker="D",s=20,color=COLORS["accent"],zorder=10)
         ax.annotate(str(latest["time"])[5:10]+"  "+text,xy=(n-1,last_close),
-            xytext=(-8,-16),textcoords="offset points",ha="right",fontsize=7.7,color=COLORS["gold"],zorder=9)
+            xytext=(-8,-16),textcoords="offset points",ha="right",fontsize=7.7,color=COLORS["accent"],zorder=9)
     ax.text(0,1.015,t("实测截止 ","Observed through ")+str(latest["time"])[:10],
         transform=ax.transAxes,fontsize=7.8,color=COLORS["muted"])
 
@@ -236,7 +244,7 @@ def render(data: dict, output_dir: Path, *, font_path: Path | None = None, dpi: 
         confirm=fvg.get("confirmed_time") or fvg.get("time")
         x0=xpos(confirm)
         ax.add_patch(Rectangle((x0-.25,lower),max(n-x0,.65),upper-lower,
-            facecolor=COLORS["fvg"],edgecolor=COLORS["fvg"],lw=.7,alpha=.26,zorder=6))
+            facecolor=COLORS["fvg"],edgecolor=COLORS["fvg"],lw=.7,alpha=.12,zorder=6))
         side=t("空头","Bearish") if fvg.get("direction")=="bearish" else t("多头","Bullish")
         lifecycle=(fvg.get("lifecycle") or {}).get("status")
         life_text={"active":t("尚未触及","untouched"),"touched":t("已触及","touched"),
@@ -248,27 +256,29 @@ def render(data: dict, output_dir: Path, *, font_path: Path | None = None, dpi: 
         sweep_x=xpos(note["date"])
         ref_x=xpos(note["reference_date"])
         extreme=note["extreme"]
-        ax.plot([ref_x,sweep_x],[note["reference_price"]]*2,color=COLORS["purple"],ls=":",lw=1.1,zorder=6)
-        ax.scatter([sweep_x],[extreme],facecolor=COLORS["card"],edgecolor=COLORS["purple"],s=24,zorder=9)
+        ict_color=COLORS["ict_buy"] if note["type"]=="ssl_candidate" else COLORS["ict_sell"]
+        ax.plot([ref_x,sweep_x],[note["reference_price"]]*2,color=ict_color,ls=":",lw=1.1,zorder=6)
+        ax.scatter([sweep_x],[extreme],marker="o" if note["type"]=="ssl_candidate" else "s",
+            facecolor=COLORS["card"],edgecolor=ict_color,s=24,zorder=9)
         tag="SSL" if note["type"]=="ssl_candidate" else "BSL"
         ax.annotate(f"{str(note['date'])[5:10]} {tag} "+t("候选","candidate")+f" {number(extreme)}",
             xy=(sweep_x,extreme),xytext=(-7,-13),textcoords="offset points",ha="right",
-            color=COLORS["purple"],fontsize=7.8,zorder=9)
+            color=ict_color,fontsize=7.8,zorder=9)
         mss=note.get("mss_reference_price")
         if isinstance(mss,(int,float)):
-            ax.plot([sweep_x,n-1],[mss,mss],color=COLORS["purple"],ls="--",lw=1)
+            ax.plot([sweep_x,n-1],[mss,mss],color=ict_color,ls="--",lw=1)
             ax.text(max(0,sweep_x-.5),mss+span*.02,t("MSS参考 ","MSS reference ")+number(mss),
-                ha="right",fontsize=8,color=COLORS["purple"])
+                ha="right",fontsize=8,color=ict_color)
 
-    legend_handles=[Line2D([0],[0],color=COLORS["gold"],lw=1.9,label=t("确认笔（回溯锚点）","Confirmed strokes")),
-        Line2D([0],[0],color=COLORS["gold"],ls="--",lw=1.2,label=t("形成中笔","Forming stroke")),
-        Patch(facecolor=COLORS["zone_fill"],edgecolor=COLORS["gold"],ls="--",label=t("回溯中枢","Retrospective zones")),
-        Line2D([0],[0],color=COLORS["purple"],lw=1,label="ICT")]
+    legend_handles=[Line2D([0],[0],color=COLORS["accent"],lw=1.5,label=t("确认笔（回溯锚点）","Confirmed strokes")),
+        Line2D([0],[0],color=COLORS["accent"],ls="--",lw=1.5,label=t("形成中笔","Forming stroke")),
+        Patch(facecolor=to_rgba(COLORS["zone_up"],.09),edgecolor=to_rgba(COLORS["zone_up"],.65),label=t("回溯中枢","Retrospective zones")),
+        Line2D([0],[0],color=COLORS["fvg"],lw=1,label="ICT FVG")]
     if forecast_rows:
         legend_handles += [Line2D([0],[0],color=COLORS["blue"],ls="--",lw=2,label=t("预测收盘中位","Forecast median close")),
                            Patch(facecolor=COLORS["band"],alpha=.25,label=t("P10–P90 样本分位","P10-P90 sample quantiles"))]
     ax.legend(handles=legend_handles,loc="lower left",bbox_to_anchor=(-.006,1.10),ncol=len(legend_handles),
-        frameon=False,fontsize=8.3,columnspacing=1.6,handlelength=1.7)
+        frameon=False,fontsize=8.1,columnspacing=1.1,handlelength=1.7)
 
     full_idx={str(b["time"])[:10]:i for i,b in enumerate(full)}
     volumes=[b.get("volume")/1e8 if isinstance(b.get("volume"),(int,float)) else np.nan for b in bars]
@@ -298,13 +308,26 @@ def render(data: dict, output_dir: Path, *, font_path: Path | None = None, dpi: 
         for index in sorted(set(future_ticks)):
             ticks.append(n+index)
             tick_labels.append(str(forecast_rows[index]["date"])[5:10].replace("-","/"))
-    vx.set_xticks(ticks,tick_labels,fontsize=7.8)
-    rule(.055,.945,.326,color=COLORS["foot_line"])
-    fig.text(.071,.309,t("收涨 / 收跌  ·  金色：结构与此前20日均量  ·  紫色：ICT  ·  蓝色：预测情景",
-        "Up / down candles · gold: structure and prior 20-bar volume · purple: ICT · blue: scenarios"),
+    labels_by_tick=dict(zip(ticks,tick_labels))
+    required_ticks={n-1,n+len(forecast_rows)-1} if forecast_rows else {n-1}
+    # Keep the observation cutoff and final scenario date; thin nearby labels.
+    minimum_tick_gap=(7.8*5*.6+8)/(plot_width*fig.get_figwidth()*72)*(ax.get_xlim()[1]-ax.get_xlim()[0])
+    selected_ticks=sorted(required_ticks)
+    for tick in ticks:
+        if all(abs(tick-kept)>=minimum_tick_gap for kept in selected_ticks):
+            selected_ticks.append(tick)
+    ticks=sorted(selected_ticks)
+    vx.set_xticks(ticks,[labels_by_tick[tick] for tick in ticks],fontsize=7.8)
+    if forecast_rows and len(forecast_rows)<minimum_tick_gap:
+        for tick,label in zip(ticks,vx.get_xticklabels()):
+            if tick in required_ticks:
+                label.set_ha("right" if tick==n-1 else "left")
+    rule(workspace_left,chart_right,.205,color=COLORS["foot_line"])
+    fig.text(plot_left,.184,t("收涨 / 收跌 · 蓝灰：结构 · 金色：此前20日均量 · 青紫：ICT · 蓝色：预测情景",
+        "Up / down candles · blue-gray: structure · gold: prior 20-bar volume · teal / purple: ICT · blue: scenarios"),
         fontsize=7.8,color=COLORS["muted"])
-    fig.text(.930,.309,t("P10–P90 为有效样本分位区间","P10-P90: valid-sample quantiles"),
-        ha="right",fontsize=7.8,color=COLORS["muted"])
+    fig.text(chart_right-.016,.214,t("P10–P90 为有效样本分位区间","P10-P90: valid-sample quantiles"),
+        ha="right",fontsize=7.4,color=COLORS["muted"])
 
     if forecast_rows:
         horizon=len(forecast_rows)
@@ -325,10 +348,10 @@ def render(data: dict, output_dir: Path, *, font_path: Path | None = None, dpi: 
                 bbox={"fc":COLORS["card"],"ec":"none","alpha":.84,"pad":1.1})
         for v in (sc.get("support_floor"),sc.get("resistance_ceiling")):
             if isinstance(v,(int,float)):
-                ax.plot([n-1,n+horizon-.5],[v,v],color=COLORS["gold"],ls=":",lw=1)
+                ax.plot([n-1,n+horizon-.5],[v,v],color=COLORS["accent"],ls=":",lw=1)
         if fvg and fvg.get("zone") and (fvg.get("lifecycle") or {}).get("status") not in ("filled","closed_through"):
             ax.add_patch(Rectangle((n-.5,fvg["zone"][0]),horizon,fvg["zone"][1]-fvg["zone"][0],
-                facecolor=COLORS["fvg"],edgecolor="none",alpha=.2,zorder=3))
+                facecolor=COLORS["fvg"],edgecolor="none",alpha=.12,zorder=3))
     else:
         empty_label={"unavailable":t("预测\n不可用","FORECAST\nUNAVAILABLE"),
                      "not_executed":t("预测\n未执行","FORECAST\nNOT RUN")}.get(pstatus,ptext)
@@ -417,11 +440,9 @@ def render(data: dict, output_dir: Path, *, font_path: Path | None = None, dpi: 
                      t("位移、结构、回撤与净R:R分别核验。","Verify displacement, structure, retest and net R:R."))
     ict_lines.append(t("机械状态不等于最终交易确认。","Mechanical status does not establish a final setup."))
 
-    fig.text(.055,.270,t("证据与共振","EVIDENCE AND CONFLUENCE"),fontsize=10.5,fontweight="semibold",color=COLORS["ink"])
-    rule(.055,.945,.254,color=COLORS["divider"])
-    rule(.055,.125,.254,color=COLORS["ink"],width=1.4)
-    for x in (.347,.660):
-        fig.add_artist(Line2D([x,x],[.104,.235],transform=fig.transFigure,color=COLORS["evidence_line"],lw=.7))
+    evidence_left, evidence_right = sidebar_left+.013, workspace_right-.013
+    fig.text(evidence_left,.742,t("证据与共振","EVIDENCE AND CONFLUENCE"),fontsize=10.1,fontweight="semibold",color=COLORS["ink"])
+    rule(evidence_left,evidence_right,.722,color=COLORS["divider"])
     final_label={"not_assessed":t("最终确认尚待核验","Final context unverified"),
                  "confirmed":t("最终设定已确认","Final setup confirmed"),
                  "developing":t("设定形成中","Setup developing"),
@@ -429,25 +450,32 @@ def render(data: dict, output_dir: Path, *, font_path: Path | None = None, dpi: 
                  "no-trade":t("暂无可执行设定","No executable setup")}.get(ict.get("final_status"),t("最终确认尚待核验","Final context unverified"))
     available=lambda value: {"available":t("输入可用","Input available"),"partial":t("部分可用","Partially available"),
         "unavailable":t("暂不可用","Unavailable"),"completed":t("已扫描","Scanned")}.get(value,t("待核验","Unverified"))
-    panels=[(.055,t("CZSC 结构","CZSC STRUCTURE"),available(structure.get("status")),direction(sdir),structure_lines),
-            (.368,t("威科夫 / 量价","WYCKOFF / PRICE-VOLUME"),available(pv.get("status")),direction(vdir),pv_lines),
-            (.681,t("ICT / SMC 验证","ICT / SMC VALIDATION"),available(ict.get("status")),final_label,ict_lines)]
-    for x,title,status_label,bias,lines in panels:
-        fig.text(x,.233,title,fontsize=9.9,fontweight="semibold",color=COLORS["ink"])
-        fig.text(x,.208,bias,fontsize=13.5,color=COLORS["ink"])
-        fig.text(x+.195,.233,status_label,ha="right",fontsize=7.6,color=COLORS["muted"])
-        expanded=[s for line in lines for s in wrapped_lines(line)]
-        for y,line in zip([.187,.17,.153,.136,.119,.102],expanded[:6]):
-            fig.text(x,y,line,fontsize=8.7,color=COLORS["evidence_ink"])
-    rule(.055,.945,.090,color=COLORS["divider"])
+    panels=[(t("CZSC 结构","CZSC STRUCTURE"),available(structure.get("status")),direction(sdir),structure_lines),
+            (t("威科夫 / 量价","WYCKOFF / PRICE-VOLUME"),available(pv.get("status")),direction(vdir),pv_lines),
+            (t("ICT / SMC 验证","ICT / SMC VALIDATION"),available(ict.get("status")),final_label,ict_lines)]
+    expanded_panels=[(title,status_label,bias,[s for line in lines for s in wrapped_lines(line,22)])
+        for title,status_label,bias,lines in panels]
+    line_gap=min(.014,.325/max(1,sum(len(lines) for _,_,_,lines in expanded_panels)))
+    evidence_y=.704
+    for title,status_label,bias,lines in expanded_panels:
+        fig.text(evidence_left,evidence_y,title,fontsize=9.4,fontweight="semibold",color=COLORS["ink"])
+        fig.text(evidence_right,evidence_y,status_label,ha="right",fontsize=7.2,color=COLORS["muted"])
+        fig.text(evidence_left,evidence_y-.024,bias,fontsize=10.2,color=COLORS["ink"])
+        for offset,line in enumerate(lines):
+            fig.text(evidence_left,evidence_y-.047-offset*line_gap,line,
+                fontsize=min(8.2,line_gap*fig.get_figheight()*72*.83),color=COLORS["evidence_ink"])
+        evidence_y-=.060+len(lines)*line_gap
+        if title!=panels[-1][0]:
+            rule(evidence_left,evidence_right,evidence_y+.009,color=COLORS["evidence_line"])
+    rule(workspace_left,workspace_right,.139,color=COLORS["divider"])
     takeaway=relationship+" · "+(t("预测质量未通过，路径只作情景参考。","Prediction quality failed; paths are sample scenarios only.") if pstatus=="fail" else
         t("预测可用性通过，不能替代结构、量价和ICT的独立验证。","Prediction availability passed; verify structure, volume and ICT independently.") if pstatus=="pass" else ptext)
-    fig.text(.055,.075,takeaway,fontsize=9.2,color=COLORS["amber"])
-    fig.text(.055,.049,t("时钟：笔与中枢为当前截止的回溯几何；锚点与确认时间分开；形成桶和未来情景不作历史确认。P10–P90并非校准置信区间。",
+    fig.text(workspace_left,.117,takeaway,fontsize=9.2,color=COLORS["amber"])
+    fig.text(workspace_left,.083,t("时钟：笔与中枢为当前截止的回溯几何；锚点与确认时间分开；形成桶和未来情景不作历史确认。P10–P90并非校准置信区间。",
         "Timing: retrospective anchors differ from confirmation. Forming bars and forecast scenarios cannot confirm history. Quantiles are uncalibrated."),
         fontsize=8,color=COLORS["fineprint"])
     provenance=t("本地用户声明数据；未独立认证行情、公司行为与成交可行性。","Local user-declared data; prices, corporate actions and execution are not independently certified.")
-    fig.text(.055,.031,provenance,fontsize=8,color=COLORS["fineprint"])
+    fig.text(workspace_left,.062,provenance,fontsize=8,color=COLORS["fineprint"])
     if not chinese:
         data.setdefault("render_warnings",[]).append("No CJK font available; English chart labels were used.")
     data["render"]={"style":"kcpredict-composite-v4","font":family,"language":"zh" if chinese else "en","dpi":dpi,

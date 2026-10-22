@@ -128,12 +128,23 @@ def test_history_forecast_and_volume_use_one_continuous_axis_without_resampling(
     raw=source()
     raw["frequencies"]["日线"]["bars"][0]["open"] += .4  # Exercise both candle directions.
     data=chart.prepare_chart_data(raw,prediction_payload=forecast(raw,"pass"))
+    bars=data["history"]["bars"]
+    data["pens"]=[{"start_time":bars[5]["time"],"end_time":bars[15]["time"],
+                   "start_price":10.1,"end_price":11.2,"display_confirmed":True},
+                  {"start_time":bars[65]["time"],"end_time":bars[75]["time"],
+                   "start_price":11.2,"end_price":10.8,"display_confirmed":False}]
+    data["zones"]=[{"start_time":bars[10]["time"],"end_time":bars[30]["time"],"low":10,"high":11,
+                    "direction":"up","display_confirmed":True},
+                   {"start_time":bars[40]["time"],"end_time":bars[60]["time"],"low":10.5,"high":11.5,
+                    "direction":"down","display_confirmed":True},
+                   {"start_time":bars[70]["time"],"end_time":bars[75]["time"],"low":10.5,"high":11.5,
+                    "direction":"up","display_confirmed":False}]
     expected=copy.deepcopy(data["prediction"])
     result=chart.render(data,tmp_path,dpi=72)
     figure=figures[-1]
     assert len(figure.axes)==3  # price, shared volume, thin quality bar in the hero
     price,volume,quality=figure.axes
-    assert price.get_position().width>.8
+    assert price.get_position().width>.65
     assert price.get_position().width==volume.get_position().width
     assert price.get_shared_x_axes().joined(price,volume)
     assert price.get_xlim()==volume.get_xlim()
@@ -142,6 +153,8 @@ def test_history_forecast_and_volume_use_one_continuous_axis_without_resampling(
     assert price.yaxis.get_ticks_position()=="right"
     n=len(data["history"]["bars"])
     horizon=len(expected["forecast"])
+    assert n-1 in volume.get_xticks() and n+horizon-1 in volume.get_xticks()
+    assert n+1 not in volume.get_xticks()  # Avoid crowding the last observed and future dates.
     x=list(range(n-1,n+horizon))
     last=data["history"]["bars"][-1]["close"]
     median=next(line for line in price.lines if line.get_gid()=="forecast_median")
@@ -184,5 +197,21 @@ def test_history_forecast_and_volume_use_one_continuous_axis_without_resampling(
     for rectangle,bar in zip(candles,data["history"]["bars"]):
         expected_color=palette["up"] if bar["close"]>=bar["open"] else palette["down"]
         np.testing.assert_array_equal(rectangle.get_facecolor(),to_rgba(expected_color))
-    assert len([artist for artist in figure.artists if artist.get_gid()=="chart_workspace"])==1
+    workspace=next(artist for artist in figure.artists if artist.get_gid()=="chart_workspace")
+    sidebar=next(artist for artist in figure.artists if artist.get_gid()=="evidence_sidebar")
+    assert sidebar.get_x()>workspace.get_x()+workspace.get_width()
+    assert sidebar.get_y()==workspace.get_y()
+    assert sidebar.get_height()==workspace.get_height()
+    for gid,linestyle in (("confirmed_pen","-"),("forming_pen","--")):
+        line=next(line for line in price.lines if line.get_gid()==gid)
+        assert line.get_color()==palette["accent"]
+        assert line.get_linestyle()==linestyle
+    zones=[patch for patch in price.patches if patch.get_gid()=="confirmed_zone"]
+    assert len(zones)==2
+    for zone,key,source_zone in zip(zones,("zone_up","zone_down"),data["zones"]):
+        np.testing.assert_array_equal(zone.get_facecolor(),to_rgba(palette[key],.09))
+        np.testing.assert_array_equal(zone.get_edgecolor(),to_rgba(palette[key],.65))
+        assert zone.get_linestyle()=="-"
+        assert zone.get_y()==source_zone["low"]
+        assert zone.get_height()==source_zone["high"]-source_zone["low"]
     assert not any("02  Prediction quality" in text.get_text() for text in figure.texts)
