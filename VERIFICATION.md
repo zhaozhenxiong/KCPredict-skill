@@ -2,7 +2,7 @@
 
 ## v0.0.4 结构分析工作台风格（2026-10-22）
 
-本次在 Windows x64、Python 3.12 执行完整测试：**343 passed，53 subtests passed**。新增主题、HTML/静态绘图、数据和质量边界、CLI/server、技能分发与打包约束均通过。Windows 测试显式读取 UTF-8 文件、为隔离子进程指定已安装 IANA 时区数据目录，并在 POSIX 缓存单元测试中排除 Windows 路径/句柄创建时间差异；生产模型核验继续保留 v0.0.3 修复。Windows 构建产生的 wheel/sdist 元数据按完整版本行核验，兼容 LF/CRLF；8项回归检查覆盖两个包格式、两种换行和正确/错配版本。
+本次在 Windows x64、Python 3.12 执行完整测试：**345 passed，53 subtests passed**。新增主题、HTML/静态绘图、数据和质量边界、CLI/server、技能分发与打包约束均通过。Windows 测试显式读取 UTF-8 文件、为隔离子进程指定已安装 IANA 时区数据目录，并在 POSIX 缓存单元测试中排除 Windows 路径/句柄创建时间差异；生产模型核验继续保留 v0.0.3 修复。Windows 构建产生的 wheel/sdist 元数据按完整版本行核验，兼容 LF/CRLF；10项回归检查覆盖两个包格式、两种换行、正确/错配版本，以及 setup.cfg 纯换行还原与真实内容修改拒绝。
 
 HTML、PNG、SVG 的共享主题改为 `kcpredict-structure-analysis-v1`，规范主题 SHA 为 `b5d2fc015c6e3223c535b87d9e7488e5ec5dfb71cb93da22565794e444b167a5`。离线图采用左图右证据栏；实际浏览器验证桌面与 390px 窄屏、时间窗口、图层开关、日期固定/解除、预测明细，并检查无 NaN 几何与页面横向溢出。本地 `serve` 网页同步配色、字体、右侧价格轴和事件依据侧栏，实际状态接口可读。
 

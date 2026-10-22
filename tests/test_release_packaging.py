@@ -72,3 +72,46 @@ def test_metadata_version_audit_accepts_line_endings_but_rejects_mismatch(
     else:
         with pytest.raises(ValueError, match="Incorrect package metadata version"):
             release_builder.audit(archive, {}, prefix=prefix, version=version, distribution=distribution)
+
+
+@pytest.mark.parametrize("content_changed", [False, True], ids=["crlf-only", "different-content"])
+def test_build_restores_only_setup_cfg_line_endings(release_builder, tmp_path, monkeypatch, content_changed):
+    root, destination = tmp_path / "source", tmp_path / "release"
+    source_fixture(root, release_builder)
+    for name in ("src/kcpredict/__init__.py", "tests/test_fixture.py", "docs/fixture.md"):
+        (root / name).write_bytes(b"# Synthetic packaging fixture\n")
+    original = b"[egg_info]\ntag_build = \ntag_date = 0\n"
+    (root / "setup.cfg").write_bytes(original)
+    version = "0.0.4"
+    prefix = f"kcpredict-{version}/"
+    monkeypatch.setattr(release_builder, "project_version", lambda _: version)
+    monkeypatch.setattr(release_builder, "verify_frozen_assets", lambda _: {"frozen_assets_verified": True})
+    monkeypatch.setattr(release_builder.metadata, "version", lambda _: "fixture")
+
+    def fake_build(command, **kwargs):
+        raw = Path(command[command.index("--outdir") + 1])
+        files = release_builder.source_inventory(Path(command[-1]))
+        metadata = f"Metadata-Version: 2.4\r\nName: kcpredict\r\nVersion: {version}\r\n".encode()
+        wheel = {name.removeprefix("src/"): data for name, data in files.items()
+                 if name.startswith("src/kcpredict/")}
+        wheel[f"kcpredict-{version}.dist-info/METADATA"] = metadata
+        release_builder.write_zip(raw / f"kcpredict-{version}-py3-none-any.whl", wheel,
+                                  release_builder.MINIMUM_EPOCH)
+        sdist = {prefix + name: data for name, data in files.items()}
+        sdist[prefix + "PKG-INFO"] = metadata
+        rewritten = original.replace(b"\n", b"\r\n")
+        sdist[prefix + "setup.cfg"] = rewritten + (b"tag_svn_revision = 1\r\n" if content_changed else b"")
+        release_builder.write_tar(raw / f"kcpredict-{version}.tar.gz", sdist, release_builder.MINIMUM_EPOCH)
+        return release_builder.subprocess.CompletedProcess(command, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(release_builder.subprocess, "run", fake_build)
+    if content_changed:
+        with pytest.raises(ValueError, match=r"Missing or altered release file.*setup\.cfg"):
+            release_builder.build(root, destination)
+        assert not destination.exists()
+    else:
+        manifest = release_builder.build(root, destination)
+        sdist = release_builder.read_archive(destination / f"kcpredict-{version}.tar.gz")
+        assert sdist[prefix + "setup.cfg"] == original
+        assert all(item["expected_files_identical"] for item in manifest["files"])
+    assert (root / "setup.cfg").read_bytes() == original

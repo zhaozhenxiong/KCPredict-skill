@@ -238,7 +238,13 @@ def build(root: Path, destination: Path | None = None, *, epoch: int = MINIMUM_E
         wheel_name = f"kcpredict-{version}-py3-none-any.whl"
         sdist_name = f"kcpredict-{version}.tar.gz"
         write_zip(assets / wheel_name, read_archive(raw_assets / wheel_name), epoch)
-        write_tar(assets / sdist_name, read_archive(raw_assets / sdist_name), epoch)
+        sdist_files = read_archive(raw_assets / sdist_name)
+        setup_cfg = f"kcpredict-{version}/setup.cfg"
+        # Setuptools may rewrite this file's line endings on Windows.
+        if (setup_cfg in sdist_files and sdist_files[setup_cfg].replace(b"\r\n", b"\n")
+                == files["setup.cfg"].replace(b"\r\n", b"\n")):
+            sdist_files[setup_cfg] = files["setup.cfg"]
+        write_tar(assets / sdist_name, sdist_files, epoch)
         source_prefix = f"KCPredict-{version}/"
         standalone_name = f"KCPredict-{version}-standalone.zip"
         write_zip(assets / standalone_name, {source_prefix + name: data for name, data in files.items()}, epoch,
