@@ -195,7 +195,7 @@ def audit(path: Path, expected: dict[str, bytes], *, prefix: str = "", version: 
             raise ValueError(f"Missing or altered release file in {path.name}: {name}")
     if version is not None:
         key = f"kcpredict-{version}.dist-info/METADATA" if distribution == "wheel" else prefix + "PKG-INFO"
-        if f"Version: {version}\n" not in content[key].decode("utf-8"):
+        if f"Version: {version}" not in content[key].decode("utf-8").splitlines():
             raise ValueError(f"Incorrect package metadata version in {path.name}")
     raw = path.read_bytes()
     return {"filename": path.name, "distribution": distribution, "bytes": len(raw), "sha256": sha256(raw),
