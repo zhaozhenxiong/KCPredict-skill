@@ -51,4 +51,4 @@ KCPredict 将结构、量价、ICT 和未来路径放在一张连续时间轴上
 python skill/scripts/kcpredict_report.py --symbol 002436.SZ
 ```
 
-默认最近3个月、未来5个交易日、64条采样。使用自己的数据与实际截止，不会自动取得本示例的行情或复用示例数字。安装与数据准备见 [项目说明](../README.md)，输出和迁移细节见 [综合图工作流](../skill/references/chart-workflow.md)。
+v1.0.0 默认最近3个月、未来5个交易日、128条采样、CUDA。上面的固定历史样例仍保留原64条采样。使用自己的数据与实际截止，不会自动取得本示例的行情或复用示例数字。安装与数据准备见 [项目说明](../README.md)，输出和迁移细节见 [综合图工作流](../skill/references/chart-workflow.md)。

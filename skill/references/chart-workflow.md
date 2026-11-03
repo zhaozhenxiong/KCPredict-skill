@@ -11,9 +11,9 @@ python3 SKILL_DIR/scripts/kcpredict_report.py --symbol 002436.SZ --end 2026-10-1
   --output-dir ./my-stock-review
 ```
 
-默认 `months=3,lookback=128,horizon=5,samples=64,seed=42,device=auto,temperature=.8,top_p=.9`。months 只控制展示窗口，不裁掉模型或结构预热；未来日期来自同一独立交易日历。原 CLI 的低层默认8条不变，包装入口显式传64。用户显式指定其他采样数时原样执行。
+默认 `months=3,lookback=128,horizon=5,samples=128,seed=42,device=cuda,temperature=.8,top_p=.9`。months 只控制展示窗口，不裁掉模型或结构预热；未来日期来自同一独立交易日历。原 CLI 的低层默认8条不变，包装入口显式传128。用户显式指定其他采样数时原样执行。
 
-既有32条采样的研究文件保留原有样本、输入身份和质量状态；重新美化仍按实际32条呈现。用户要求改采样数重新预测时，保存一份新的预测与图表文件，不能把旧32条数据重新标成64条。
+既有32条采样的研究文件保留原有样本、输入身份和质量状态；重新美化仍按实际32条呈现。用户要求改采样数重新预测时，保存一份新的预测与图表文件，不能把旧32条数据重新标成128条。
 
 入口按 `status → analyze → predict → ICT → chart → HTML` 执行，默认在当前目录 `outputs/` 下创建带股票、上海时间及随机后缀的新目录。只有一个指定代码时直接做，无需再确认展示形式。HTML 阶段仅读取已经验证的 `chart-data.json`，不再调用模型。
 
@@ -41,11 +41,13 @@ python3 SKILL_DIR/scripts/kcpredict_html.py --data ./restyled-chart/chart-data.j
 
 ## 共享主题与重新导出
 
-默认绘图继承 `structure-analysis` 的亮色分析工作台风格：灰蓝页面、白色图表卡、红涨绿跌 K 线、蓝色确认笔与虚线形成中笔、按方向着色的轻填充中枢，以及左图右侧方法证据栏。窄屏时证据栏移到图表下方。HTML 可点击固定日期，使用“取消固定”或 Esc 解除；缩放、图层开关、未来逐日明细和数据导出继续可用。PNG/SVG 使用同一主题与左右布局。
+默认交互图使用 KCPredict 标题，取消左侧导航、顶部面包屑、重复行情信息条及页脚长说明，保留图内质量状态与证据记录。配色和图表交互参考 LakeEquity「结构与量价」工作台设计：KCPredict 标题、无侧栏的宽幅布局、青色控件、灰蓝页面、白色图表卡、红涨绿跌 K 线、蓝色确认笔和虚线形成中笔、方向着色中枢及方法证据栏；窄屏下自动重排。参考依据为项目 `frontend/styles.css`、`frontend/pages/analysis.js` 和 `frontend/core/charts.js`。这是 KCPredict 数据契约下的独立适配，保留 KCPredict 品牌与离线交付。
 
-主题身份为 `kcpredict-structure-analysis-v1`。迁移只影响已有图层的呈现；沿用 KCPredict 自己的研究数据契约，不引入参考模板的演示数据、仓位、联合模型或交易结论。旧成品保留原样；重新绘图时写入新目录。
+主题身份为 `kcpredict-report-v1.0.0`。`kcpredict_chart_layers.py` 从原始结构 JSON 保留日／周／月行情、分型、背驰、MA5/10/20/60、BOLL、120日 HLC/3 量权筹码分布、来源事件与 W32 特征。它按窗口和可知截止筛选已有结果，不重算信号、不提升资格。旧版 chart-data 缺少这些字段时，需由原始 structure.json 重新提炼；不能从预测或演示数据补出图层。
 
-`kcpredict serve` 的独立网页入口 `src/kcpredict/web/index.html` 同步使用这套亮色工作台的配色、字体、右侧价格轴与“事件与依据”侧栏。该入口继续使用原有本地接口、周期切换、导入与预测表功能。
+默认打开笔、中枢、来源 B/S、威科夫、ICT、成交量和预测分位层；分型、背驰、MA、BOLL、筹码及单条样本线可单独开启。指标使用原始预热历史计算的值，缺失值不补零。日／周／月切换使用各周期原始结构与指标；周月形成中柱和指标明确标记，日线预测与日线 ICT 扫描不会伪装成周月信号。来源 B/S 只绘制 confirmed、input_eligible、candidate_eligible、evidence_visible 均为 true 且未排除的事件，定位在首次可用日。
+
+悬浮显示真实 OHLC 和指标；点击固定日期后筛选相应周期的来源事件，筹码分布选择当日快照，Esc 或“取消固定”恢复。来源筛选、量价特征、未来明细、质量及原始证据均可查看。静态 PNG/SVG 是同主题默认日线图的概览，包含来源 B/S 和 ICT 候选；交互图独有周期／图层切换和逐日证据检索。独立 `kcpredict serve` 页面是另外的入口，本次 skill 输出不依赖该服务。
 
 HTML、PNG、SVG 以 HTML 为视觉基准，共用 `assets/report-theme.json` 的配色、字体和版式令牌，统一标题、质量状态、连续主图、成交量与证据摘要的视觉层级。`scripts/kcpredict_theme.py` 提供 `load_theme()` 与 `theme_identity()`；主题身份包含 `schema`、`id` 和规范 JSON 的 `sha256`，供静态图与交互图核对。不要在单个 renderer 中另存一套默认色值或依赖上一张图的样式。
 
@@ -95,6 +97,6 @@ python -m pip install 'matplotlib>=3.9,<4'
 
 离线安装先准备与目标系统／架构匹配的 Matplotlib及传递依赖 wheels。脚本发现缺依赖只给准确原因和安装命令，不自行联网。使用可用的中文字体，或 `--font` 指定本地字体；没有中文字体时以英语标签出图并记录原因。SVG内嵌字形路径，便于跨机器查看。
 
-将整个技能目录复制到目标机的 `~/.codex/skills/kcpredict/`，保留 `agents/`、`references/`、`scripts/` 和 `assets/`。脚本包括 `kcpredict_report.py`、`kcpredict_chart_data.py`、`kcpredict_chart.py`、`kcpredict_html.py` 和共享主题 helper `kcpredict_theme.py`，以及同目录运行时分发器与 ICT 脚本。生成器按技能目录定位 `assets/composite.html` 与 `assets/report-theme.json`；生成、重新导出或引用主题时，这两个资源与 helper 必须整体复制。缺少资源应报告错误，不能悄悄退回另一套主题。
+将整个技能目录复制到目标机的 `~/.codex/skills/kcpredict/`，保留 `agents/`、`references/`、`scripts/` 和 `assets/`。脚本包括 `kcpredict_report.py`、`kcpredict_chart_data.py`、`kcpredict_chart_layers.py`、`kcpredict_chart.py`、`kcpredict_html.py` 和共享主题 helper `kcpredict_theme.py`，以及同目录运行时分发器与 ICT 脚本。生成器按技能目录定位 `assets/composite.html`、`assets/chart-layers.js`、`assets/lake-workbench.css` 与 `assets/report-theme.json`；生成、重新导出或引用主题时，这些资源与 helper 必须整体复制。缺少资源应报告错误，不能悄悄退回另一套主题。
 
 模板和主题文件只在生成时需要；最终 HTML 的数据、主题、样式和脚本全内嵌，可作为单个文件离线分享，PNG/SVG 也可独立查看。独立 skill ZIP、源码包与 standalone ZIP 应同时包含主题 JSON 和 helper；运行时 wheel 本身不代替技能目录。不把私人行情、模型或这次示例输出装进技能；不依赖本机 Downloads 路径。

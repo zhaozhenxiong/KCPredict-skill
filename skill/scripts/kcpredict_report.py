@@ -153,9 +153,9 @@ def parser() -> argparse.ArgumentParser:
     root.add_argument("--months", type=int, default=3, help="Chart history in calendar months; does not change model lookback")
     root.add_argument("--lookback", type=int, choices=(128, 256), default=128)
     root.add_argument("--horizon", type=int, default=5)
-    root.add_argument("--samples", type=int, default=64, help="Requested forecast paths; workflow default: 64")
+    root.add_argument("--samples", type=int, default=128, help="Requested forecast paths; workflow default: 128")
     root.add_argument("--seed", type=int, default=42)
-    root.add_argument("--device", choices=("auto", "cpu", "mps", "cuda"), default="auto")
+    root.add_argument("--device", choices=("auto", "cpu", "mps", "cuda"), default="cuda")
     root.add_argument("--temperature", type=float, default=.8)
     root.add_argument("--top-p", type=float, default=.9)
     root.add_argument("--no-predict", action="store_true", help="Explicitly request structure and ICT without inference")
@@ -171,8 +171,8 @@ def _validate(options) -> None:
         raise ValueError("--months must be a positive integer")
     if not 1 <= options.horizon <= 10:
         raise ValueError("--horizon must be in 1–10")
-    if not 1 <= options.samples <= 64:
-        raise ValueError("--samples must be in 1–64")
+    if not 1 <= options.samples <= 128:
+        raise ValueError("--samples must be in 1–128")
     if not 0 <= options.seed < 2 ** 63:
         raise ValueError("--seed must be in 0–2**63-1")
     if not math.isfinite(options.temperature) or not 0 < options.temperature <= 2:

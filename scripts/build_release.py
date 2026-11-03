@@ -39,7 +39,8 @@ PRIVATE_SUFFIXES = {".csv", ".tsv", ".db", ".sqlite", ".sqlite3", ".safetensors"
                     ".ckpt", ".bin", ".parquet", ".npy", ".npz", ".pkl", ".pickle", ".pem",
                     ".key", ".p12", ".pfx", ".log"}
 MINIMUM_EPOCH = 315532800  # ZIP's earliest representable date: 1980-01-01 UTC.
-REQUIRED_SKILL = {"SKILL.md", "LICENSE", "agents/openai.yaml", "assets/composite.html", "assets/report-theme.json",
+REQUIRED_SKILL = {"SKILL.md", "LICENSE", "agents/openai.yaml", "assets/composite.html", "assets/report-theme.json", "assets/chart-layers.js", "assets/lake-workbench.css",
+                  "scripts/kcpredict_chart_layers.py",
                   "scripts/kcpredict.py", "scripts/ict_scan.py", "scripts/kcpredict_ict.py",
                   "scripts/kcpredict_chart_data.py", "scripts/kcpredict_chart.py",
                   "scripts/kcpredict_html.py", "scripts/kcpredict_report.py", "scripts/kcpredict_theme.py",

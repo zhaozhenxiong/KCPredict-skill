@@ -204,7 +204,7 @@ def test_history_forecast_and_volume_use_one_continuous_axis_without_resampling(
     assert sidebar.get_height()==workspace.get_height()
     for gid,linestyle in (("confirmed_pen","-"),("forming_pen","--")):
         line=next(line for line in price.lines if line.get_gid()==gid)
-        assert line.get_color()==palette["accent"]
+        assert line.get_color()==palette["blue"]
         assert line.get_linestyle()==linestyle
     zones=[patch for patch in price.patches if patch.get_gid()=="confirmed_zone"]
     assert len(zones)==2

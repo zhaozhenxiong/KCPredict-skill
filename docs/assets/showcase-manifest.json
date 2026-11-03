@@ -25,8 +25,8 @@
   },
   "theme": {
     "schema": "kcpredict_report_theme_v1",
-    "id": "kcpredict-structure-analysis-v1",
-    "sha256": "b5d2fc015c6e3223c535b87d9e7488e5ec5dfb71cb93da22565794e444b167a5"
+    "id": "kcpredict-report-v1.0.0",
+    "sha256": "d09524e052c694c90d8616bf85f7b011b45709343d43a07cee7ed2cad2ad09b6"
   },
   "provenance": {
     "declaration": "user_asserted",
@@ -35,18 +35,19 @@
   "files": [
     {
       "filename": "kcpredict-showcase-64.png",
-      "bytes": 421753,
-      "sha256": "3fa921a9910df95406bf516d46731b922c7d2bb3170550f0368b7b6005175f8d"
+      "bytes": 508084,
+      "sha256": "543c807eaac7fecc10e4e3c0686bcf080677073698f876bf566ad4ca9671e88d"
     },
     {
       "filename": "kcpredict-showcase-64.svg",
-      "bytes": 344502,
-      "sha256": "16dea28b9e686f9ab184afe51c50ebea25f8d5137d969a0780c0e0b1ee3425c5"
+      "bytes": 345686,
+      "sha256": "ea0a2c6fb62ab83de98282d7971a6c02b3ad1e142c0ab7bec8b60dfca8a79f9e"
     },
     {
       "filename": "kcpredict-showcase-64.html",
-      "bytes": 206770,
-      "sha256": "3456dacb2258ab4c3411ac6066bf67f9bfa5be21e4fc83456f9c4c99822ae593"
+      "bytes": 220507,
+      "sha256": "2a8ca021521aa2ef083fdd58bc588d9d35d14c1e9e6758567d9c5392709ef55f"
     }
-  ]
+  ],
+  "presentation_version": "1.0.0"
 }

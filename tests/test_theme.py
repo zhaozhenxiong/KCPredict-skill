@@ -21,15 +21,15 @@ def theme_module():
     return module
 
 
-def test_shared_asset_inherits_the_structure_analysis_palette(theme_module):
+def test_shared_asset_inherits_the_lake_equity_palette(theme_module):
     theme = theme_module.load_theme()
     assert theme["schema"] == "kcpredict_report_theme_v1"
-    assert theme["id"] == "kcpredict-structure-analysis-v1"
-    expected = {"paper": "#f1f4f7", "card": "#ffffff", "ink": "#253549",
-                "muted": "#617184", "line": "#dce3eb", "accent": "#376b91",
-                "up": "#bf565d", "down": "#327c6c", "blue": "#2f76b7",
+    assert theme["id"] == "kcpredict-report-v1.0.0"
+    expected = {"paper": "#eef3f8", "card": "#ffffff", "ink": "#18334d",
+                "muted": "#6a7e91", "line": "#dde6ef", "accent": "#087f8c",
+                "up": "#d44b55", "down": "#188768", "blue": "#2d628c",
                 "gold": "#9b5f17", "purple": "#6d28d9", "amber": "#d97706",
-                "zone_up": "#bf565d", "zone_down": "#327c6c", "fvg": "#0f766e",
+                "zone_up": "#d44b55", "zone_down": "#188768", "fvg": "#0f766e",
                 "ict_buy": "#0f766e", "ict_sell": "#6d28d9",
                 "wyckoff_buy": "#d97706", "wyckoff_sell": "#3b82f6"}
     assert {key: theme["palette"][key] for key in expected} == expected
@@ -38,7 +38,7 @@ def test_shared_asset_inherits_the_structure_analysis_palette(theme_module):
     assert theme["layout"]["max_width_px"] == 1800
     assert theme["layout"]["sidebar_width_px"] == 275
     assert theme["layout"]["workspace_gap_px"] == 20
-    assert theme["typography"]["body_px"] == 14
+    assert theme["typography"]["body_px"] == 13
     assert theme["typography"]["chart_px"] == 11
     assert theme["typography"]["font_stack"] == '"Microsoft YaHei UI","Noto Sans SC","PingFang SC",sans-serif'
 
@@ -62,7 +62,7 @@ def test_css_variables_share_the_only_up_down_color_source(theme_module):
     css = theme_module.theme_css_variables(theme)
     assert "--up:#123456" in css and "--red:#123456" in css
     assert "--teal:" + theme["palette"]["down"] in css
-    assert "--body-px:14px" in css
+    assert "--body-px:13px" in css
     assert "--chart-height-px:570px" in css
     assert "--sidebar-width-px:275px" in css
     assert "--font-stack:" + theme["typography"]["font_stack"] in css

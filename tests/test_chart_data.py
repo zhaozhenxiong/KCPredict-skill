@@ -460,3 +460,40 @@ def test_helper_never_mutates_any_input(helper):
     before = copy.deepcopy((payload, prediction, notes))
     helper.prepare_chart_data(payload, prediction, notes=notes)
     assert (payload, prediction, notes) == before
+
+
+def test_workbench_preserves_indicators_periods_and_filters_future_evidence(helper):
+    source = structure()
+    day = source["data_end"]
+    daily = source["frequencies"]["日线"]
+    row = {"time": day, "available_at": day + "T15:00:00+08:00", "ma5": 12.345,
+           "is_closed": True, "chip_as_of": day}
+    profile = {"status": "available", "as_of": day, "bins": [{"price_low": 10, "price_high": 11, "mass_fraction": .7}]}
+    daily["indicators"] = {"rows": [row, {**row, "available_at": "2024-06-01T15:00:00+08:00"}],
+                           "chip_profiles": {day: profile}}
+    future_fractal = {"time": day, "is_confirmed": True, "confirmed_at": "2024-06-01T15:00:00+08:00"}
+    daily["fractals"] = [future_fractal]
+    forming = {**daily["bars"][-1], "is_closed": False, "observed_at": day + "T15:00:00+08:00"}
+    source["frequencies"]["周线"] = {"bars": [forming], "pens": [], "zones": []}
+    event = {"date": day, "side": "BUY", "input_eligible": False, "available_at": day + "T15:00:00+08:00"}
+    source["source_evidence"] = {"events": [event, {**event, "available_at": "2024-06-01T15:00:00+08:00"}]}
+    before = copy.deepcopy(source)
+    data = helper.prepare_chart_data(source)
+    layers = data["layers"]
+    assert source == before
+    assert layers["frequencies"]["日线"]["indicators"]["rows"] == [row]
+    assert layers["frequencies"]["日线"]["indicators"]["chip_profiles"][day] == profile
+    assert layers["frequencies"]["日线"]["fractals"] == []
+    assert layers["frequencies"]["周线"]["bars"] == [forming]
+    assert layers["source_events"] == [event]  # Missing eligibility is never promoted.
+    assert all(bar["is_closed"] for bar in data["history"]["bars"])
+
+
+def test_workbench_missing_layers_remain_empty_without_synthetic_indicators(helper):
+    data = helper.prepare_chart_data(structure())
+    daily = data["layers"]["frequencies"]["日线"]
+    assert daily["bars"] == data["history"]["bars"]
+    assert daily["indicators"]["rows"] == []
+    assert daily["indicators"]["chip_profiles"] == {}
+    assert data["layers"]["source_events"] == []
+    assert "周线" not in data["layers"]["frequencies"]

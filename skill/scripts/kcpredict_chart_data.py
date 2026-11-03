@@ -594,7 +594,10 @@ def prepare_chart_data(research: dict, prediction_payload: dict | None = None,
     prediction = _prediction(prediction_payload, root, meta, bars[-1], bars)
     ict = _ict(research, analysis, ict_payload, fingerprint, bars)
     ict["notes"] = _notes(notes, bars, meta)
+    from kcpredict_chart_layers import prepare_layers
+    layers = prepare_layers(analysis, requested_start, cutoff, visible)
     return {"schema": "kcpredict_chart_data_v1", "meta": meta,
+            "layers": layers,
             "history": {"bars": copy.deepcopy(visible), "date_start": visible[0]["time"], "date_end": visible[-1]["time"],
                         "requested_start": requested_start.isoformat(), "warmup_bars": len(prior[-20:]),
                         "warmup_history": copy.deepcopy(prior[-20:])},

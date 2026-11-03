@@ -2,7 +2,7 @@
 
 本文件描述独立 CLI 的原有能力。ICT 是技能目录中的附加扫描层；调用、输入隔离和日周月限制见 [ICT 整合说明](ict-integration.md)，不改变下面的数据／模型资格门槛。
 
-股票分析的默认交付已设为 [三个月综合图](chart-workflow.md)：技能包装入口显式传 `samples=64` 并展示未来5日预测。下文原 CLI 的 `samples=8` 是低层默认值，二者不要混淆。
+股票分析的默认交付已设为 [三个月综合图](chart-workflow.md)：技能包装入口显式传 `samples=128, device=cuda` 并展示未来5日预测。下文原 CLI 的 `samples=8, device=auto` 是低层默认值，二者不要混淆。
 
 ## 安装和发现运行时
 
@@ -20,6 +20,8 @@ python3.12 install.py --no-predict
 ```
 
 Windows 使用 `install.bat` 或 `py -3.12 install.py`。安装器在发行目录创建 `.venv`，不修改系统 Python。结构引擎随包支持 macOS arm64 和 Windows x64；Linux / Intel Mac 需要额外构建相同冻结来源的匹配引擎，不能把其他 CZSC 版本当作替代。实际验证平台以本次发行验证记录为准。
+
+默认预测需要 NVIDIA GPU、兼容驱动及 CUDA 版 PyTorch。先用该运行时执行 `python -c "import torch; print(torch.__version__, torch.cuda.is_available())"`，确认 CUDA 可用。Windows 本次实测组合为 RTX 5070 Ti、PyTorch 2.13.0+cu130；对应安装命令为 `.venv\Scripts\python.exe -m pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cu130`。其他硬件按 [PyTorch 官方安装说明](https://pytorch.org/get-started/locally/) 选择兼容版本。CUDA 不可用时保留失败原因，不自动退回 CPU；用户明确选择 CPU、MPS 或 auto 时使用 `--device` 原样指定。
 
 让技能找到这次安装，选择一种配置：
 

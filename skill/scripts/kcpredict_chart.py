@@ -211,23 +211,48 @@ def render(data: dict, output_dir: Path, *, font_path: Path | None = None, dpi: 
             return indexes[key]
         return n-1 if end or key > str(latest["time"])[:10] else 0
 
-    visible_zones=[z for z in data.get("zones",[]) if z.get("display_confirmed") and str(z.get("end_time",""))[:10] >= str(first["time"])[:10]][-2:]
+    visible_zones=[z for z in data.get("zones",[]) if str(z.get("end_time",""))[:10] >= str(first["time"])[:10]]
     for z in visible_zones:
         color=COLORS["zone_up"] if z.get("direction")=="up" else COLORS["zone_down"] if z.get("direction")=="down" else COLORS["muted"]
         x0,x1=xpos(z["start_time"]),xpos(z["end_time"],end=True)
         ax.add_patch(Rectangle((x0,z["low"]),max(x1-x0,.6),z["high"]-z["low"],
-            facecolor=to_rgba(color,.09),edgecolor=to_rgba(color,.65),lw=.7,ls="-",zorder=0,gid="confirmed_zone"))
+            facecolor=to_rgba(color,.09),edgecolor=to_rgba(color,.65),lw=.7,ls="-" if z.get("display_confirmed") else "--",zorder=0,gid="confirmed_zone" if z.get("display_confirmed") else "forming_zone"))
         caption=f"{number(z['low'])}–{number(z['high'])}"
         when=str(z.get("confirmation_time") or z.get("confirmed_at") or "")[:10]
-        caption+=" · "+t("确认 ","Known ")+(when or t("未核验","unverified"))
+        caption+=" · "+(t("确认 ","Known ")+when if z.get("display_confirmed") else t("形成中","Forming"))
         ax.text(x0+.5,z["low"]+span*.017,caption,color=COLORS["chart_label"],fontsize=7.6,zorder=7)
     for pen in data.get("pens",[]):
         if str(pen.get("start_time",""))[:10] not in indexes or str(pen.get("end_time",""))[:10] not in indexes:
             continue
         confirmed=pen.get("display_confirmed") is True
         ax.plot([xpos(pen["start_time"]),xpos(pen["end_time"])],[pen["start_price"],pen["end_price"]],
-            color=COLORS["accent"],lw=1.5,ls="-" if confirmed else "--",alpha=.95,zorder=5,
+            color=COLORS["blue"],lw=1.5,ls="-" if confirmed else "--",alpha=.95,zorder=5,
             gid="confirmed_pen" if confirmed else "forming_pen")
+    # The same eligible source markers as the default interactive view.
+    source_groups = {}
+    for event in (data.get("layers") or {}).get("source_events", []):
+        if not all(event.get(key) is True for key in ("confirmed", "input_eligible", "candidate_eligible", "evidence_visible")) or event.get("excluded"):
+            continue
+        day = str(event.get("first_available_at") or event.get("available_at") or event.get("date"))[:10]
+        if day not in indexes or event.get("side") not in ("BUY", "SELL"):
+            continue
+        source_groups.setdefault((day, event["side"]), []).append(event)
+    for (day, side), events in source_groups.items():
+        i = indexes[day]
+        buy = side == "BUY"
+        value = bars[i]["low"] if buy else bars[i]["high"]
+        color = COLORS["up"] if buy else COLORS["down"]
+        label = ("B" if buy else "S") + (f" +{len(events)-1}" if len(events)>1 else "")
+        ax.scatter([i], [value + (-1 if buy else 1)*span*.025], marker="^" if buy else "v", s=15, color=color, zorder=9, gid="source_reference_marker")
+        ax.annotate(label, (i, value), xytext=(0,-21 if buy else 18), textcoords="offset points", ha="center", fontsize=7, color=color)
+    for candidate in ict.get("candidates", []):
+        day = str((candidate.get("sweep") or {}).get("time", ""))[:10]
+        if day not in indexes:
+            continue
+        i = indexes[day]
+        buy = candidate.get("direction") == "long"
+        color = COLORS["ict_buy"] if buy else COLORS["ict_sell"]
+        ax.scatter([i], [bars[i]["low"]-span*.015 if buy else bars[i]["high"]+span*.015], marker="o" if buy else "s", s=9, color=color, zorder=8, gid="ict_candidate_marker")
     # Only eligible, observed source facts can mark the known confirmation day.
     facts=[f for f in structure.get("support_facts",[]) if str(f.get("first_confirmed_at") or f.get("confirmed_at") or "")[:10] == str(latest["time"])[:10]]
     labels=list(dict.fromkeys(str(f.get("label")) for f in facts if f.get("label") not in (None,"其他")))
@@ -480,7 +505,7 @@ def render(data: dict, output_dir: Path, *, font_path: Path | None = None, dpi: 
         data.setdefault("render_warnings",[]).append("No CJK font available; English chart labels were used.")
     data["render"]={"style":"kcpredict-composite-v4","font":family,"language":"zh" if chinese else "en","dpi":dpi,
                     "theme":identity,"visual_reference":"assets/composite.html",
-                    "layer_defaults":{"structure":True,"ict":True,"prediction":True,"band":True,"samples":False,"volume":True},
+                    "layer_defaults":{"structure":True,"zones":True,"sources":True,"wyckoff":True,"fractals":False,"ma":False,"boll":False,"chips":False,"divergences":False,"ict":True,"prediction":True,"band":True,"samples":False,"volume":True},
                     "layout":"single_continuous_timeline",
                     "timeline":{"historical_x":[0,n-1],"forecast_anchor_x":n-1,
                                 "forecast_x":list(range(n,n+len(forecast_rows))),"volume_axis_shared":True},

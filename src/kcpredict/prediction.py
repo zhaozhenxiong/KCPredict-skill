@@ -256,8 +256,8 @@ def predict(frame: pd.DataFrame, future_dates, *, symbol: str, as_of: str,
     """Forecast only; no automatic model promotion, orders, run directories or downloads."""
     import torch
     started = time.monotonic()
-    if not 1 <= samples <= 64 or not isinstance(samples, int):
-        raise ValueError("samples must be an integer in 1–64")
+    if not 1 <= samples <= 128 or not isinstance(samples, int):
+        raise ValueError("samples must be an integer in 1–128")
     if not 0 < temperature <= 2 or not 0 < top_p <= 1:
         raise ValueError("temperature must be (0, 2], top_p (0, 1]")
     if not isinstance(seed, int) or not 0 <= seed < 2 ** 63:

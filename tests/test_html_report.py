@@ -277,3 +277,15 @@ def test_standalone_javascript_is_syntactically_valid_when_node_is_available(htm
     result = subprocess.run([node, "--check", str(javascript)], check=False,
                             capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
+
+
+def test_portable_layers_keep_raw_values_and_do_not_modify_forecast(html_report):
+    data = reviewed_data("fail")
+    data["layers"] = {"frequencies": {"周线": {"bars": [{"time": "2024-09-30", "is_closed": False}]}},
+                      "source_events": [{"input_eligible": False, "side": "BUY"}]}
+    before = copy.deepcopy(data)
+    payload = html_report.build_payload(data)
+    assert payload["layers"] == data["layers"]
+    assert payload["prediction"] == data["prediction"]
+    payload["layers"]["source_events"][0]["side"] = "SELL"
+    assert data == before

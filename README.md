@@ -2,17 +2,17 @@
 
 KCPredict 是可单独安装的本地结构分析与未来路径预测工具。安装包包含独立 Python 入口、冻结的 CZSC 原生引擎和 Kronos 推理源码；运行不需要 KHQuant 项目、服务或数据库。普通分析不联网，不自动下载行情或模型，不执行交易。
 
-[下载 v0.0.4](https://github.com/zhaozhenxiong/KCPredict-skill/releases/tag/v0.0.4) · [版本记录](CHANGELOG.md)
+[下载 v1.0.0](https://github.com/zhaozhenxiong/KCPredict-skill/releases/tag/v1.0.0) · [版本记录](CHANGELOG.md)
 
 ## 可视化效果
 
-最近3个月的 **CZSC 结构、威科夫量价、ICT/SMC 与未来5个交易日预测**，沿同一条时间轴展示；HTML、PNG 和 SVG 共用结构分析工作台主题：灰蓝背景、红涨绿跌、蓝色笔、轻填充中枢与右侧证据栏。
+最近3个月的 **CZSC 结构、威科夫量价、ICT/SMC 与未来5个交易日预测**，沿同一条时间轴展示。v1.0.0 采用 KCPredict 标题、无侧栏宽幅布局、灰蓝背景与白色图表卡，移除顶部重复状态及页脚长说明；预测质量和原始证据仍可查看。日／周／月切换，MA、BOLL、筹码估算、分型、来源事件与背驰图层都来自实际研究输入。
 
 ![KCPredict：结构、量价、ICT与未来五日情景综合图](docs/assets/kcpredict-showcase-64.png)
 
 [下载离线演示包](https://github.com/zhaozhenxiong/KCPredict-skill/raw/refs/heads/main/docs/assets/kcpredict-showcase-64.zip) · [交互 HTML 文件](docs/assets/kcpredict-showcase-64.html) · [高清 PNG](docs/assets/kcpredict-showcase-64.png) · [矢量 SVG](docs/assets/kcpredict-showcase-64.svg) · [功能导览](docs/showcase.md)
 
-固定历史展示样例：`002436.SZ`，截至 **2026-10-16**；64条采样中47条有效（73.4375%），**预测质量未通过**。蓝色未来路径仅为模型采样情景。HTML 下载后可离线打开；GitHub 文件页显示源码，不会直接执行交互。
+上方为固定历史展示样例，已应用 v1.0.0 样式并保留原始数据：`002436.SZ`，截至 **2026-10-16**；64条采样中47条有效（73.4375%），**预测质量未通过**。它不代表新版128条采样的执行结果。蓝色未来路径仅为模型采样情景。HTML 下载后可离线打开；GitHub 文件页显示源码，不会直接执行交互。
 
 - **证据放在一起**：确认笔、中枢、量能、流动性候选与严格 FVG 同图查看，支持和冲突各自保留。
 - **细节可交互**：缩放、平移、逐日数值、图层开关，以及确认时间、生命周期和预测分位明细。
@@ -22,7 +22,7 @@ KCPredict 是可单独安装的本地结构分析与未来路径预测工具。�
 
 - Python **3.12（64 位）**。
 - 结构分析使用发行包内的冻结原生引擎：**macOS Apple Silicon（arm64）**、**Windows x64（AMD64）**。当前随包二进制不支持 Linux 或 Intel Mac；这些平台需要从相同冻结来源构建匹配引擎并核验身份，不能替换成 PyPI 的其他 CZSC 版本。
-- 预测额外需要 PyTorch 等依赖和单独准备的 Kronos-base / Kronos-Tokenizer-base 权重。CPU 可运行；`auto` 根据实际可用环境选择 CUDA、MPS、CPU，明确指定不可用设备会报错。
+- 预测额外需要 PyTorch 等依赖和单独准备的 Kronos-base / Kronos-Tokenizer-base 权重。**skill 工作流默认128条采样、CUDA**，需要 NVIDIA GPU、兼容驱动和 CUDA 版 PyTorch；不会自动退回 CPU。用户可显式指定 `--device cpu`、`mps` 或 `auto`。低层 CLI 默认8条、auto 保持兼容。
 - 源码附有上方说明的固定可视化展示样例；个人行情库、运行日历、模型权重、账户、密钥和本机状态不随包提供。预测模型文件合计约 **425 MB**；Python 和 PyTorch 安装另占磁盘空间。
 
 本次实际安装验证平台和执行结果见 [VERIFICATION.md](VERIFICATION.md)。本次新增 Windows x64 的绘图、网页入口、测试与发行包核查；Linux、Intel Mac 的平台限制与既有验证记录见该文件。
@@ -55,11 +55,11 @@ install.bat
 python3.12 install.py --no-predict
 ```
 
-后续再次运行 `install.py` 即可补装预测依赖。`status` 可在没有行情和权重时运行，并报告尚未准备的资产。
+后续再次运行 `install.py` 即可补装预测依赖。CUDA 环境检查与官方安装命令见 [运行说明](skill/references/runtime.md)。`status` 可在没有行情和权重时运行，并报告尚未准备的资产。
 
 ### 在 Codex 中使用 KCPredict skill
 
-源码发行包的 `skill/` 是可独立迁移的技能目录。将整个目录复制到目标电脑的 `~/.codex/skills/kcpredict/`，确保该目录下直接是 `SKILL.md`，旁边保留 `agents/`、`references/`、`scripts/` 和 `assets/`。其中 `assets/` 同时包含 `composite.html` 模板与 `report-theme.json` 主题，迁移时还须保留 `scripts/kcpredict_theme.py`；生成后的 `composite.html` 已全内嵌，可单独离线分享。然后为 Codex 进程设置 `KCPREDICT_PYTHON`，指向刚安装的 KCPredict 虚拟环境 Python：
+源码发行包的 `skill/` 是可独立迁移的技能目录。将整个目录复制到目标电脑的 `~/.codex/skills/kcpredict/`，确保该目录下直接是 `SKILL.md`，旁边保留 `agents/`、`references/`、`scripts/` 和 `assets/`。其中 `assets/` 包含 HTML 模板、主题、图层脚本和样式；迁移时须保留整个 `scripts/`，包括主题与图层数据加载脚本；生成后的 `composite.html` 已全内嵌，可单独离线分享。然后为 Codex 进程设置 `KCPREDICT_PYTHON`，指向刚安装的 KCPredict 虚拟环境 Python：
 
 ```sh
 export KCPREDICT_PYTHON="/path/to/KCPredict/.venv/bin/python"
@@ -67,7 +67,7 @@ export KCPREDICT_PYTHON="/path/to/KCPredict/.venv/bin/python"
 
 Windows 的对应路径是 `C:\path\to\KCPredict\.venv\Scripts\python.exe`，可在启动 Codex 的命令提示符中先执行 `set KCPREDICT_PYTHON=C:\path\to\KCPredict\.venv\Scripts\python.exe`，或在用户环境变量中保存该值。也可以在启动 Codex 前激活该虚拟环境，让 `kcpredict` 在其 `PATH` 中可用。技能不会猜另一项目的位置，也不会自动启动旧服务。
 
-技能已整合 [ICT Trading Model](https://github.com/carreypro/ict-trading-model) 的方法与本地扫描器。现在说“分析某只股票”，默认交付**最近3个月的结构、量价、ICT与未来5个交易日预测单文件 HTML 交互综合图**，附 PNG/SVG 预览；历史与未来沿同一条时间轴连续衔接，实际行情截止线明确区分事实和采样情景。图内标明预测质量通过／未通过／不可用／未执行。技能工作流默认使用64条采样、128根模型历史、种子42；独立 CLI 低层默认采样仍为8，用户指定参数优先。ICT 派生结果保留独立的机械状态；最终结论仍需核查高周期、数据质量和净盈亏比。沪深日周月不套用纽约盘中时段，也不从预测样本确认历史信号。
+技能已整合 [ICT Trading Model](https://github.com/carreypro/ict-trading-model) 的方法与本地扫描器。现在说“分析某只股票”，默认交付**最近3个月的结构、量价、ICT与未来5个交易日预测单文件 HTML 交互综合图**，附 PNG/SVG 预览；历史与未来沿同一条时间轴连续衔接，实际行情截止线明确区分事实和采样情景。图内标明预测质量通过／未通过／不可用／未执行。技能工作流默认使用128条采样、CUDA、128根模型历史、种子42；独立 CLI 低层默认采样仍为8，用户指定参数优先。ICT 派生结果保留独立的机械状态；最终结论仍需核查高周期、数据质量和净盈亏比。沪深日周月不套用纽约盘中时段，也不从预测样本确认历史信号。
 
 示例：`使用 $kcpredict 综合分析 002436.SZ 截至 2026-10-16 的结构、量价和 ICT，列出共振、冲突与缺失证据，再预测未来 5 个交易日。` 数据、核验日历和固定模型仍按下文单独准备。
 
@@ -91,7 +91,7 @@ python3 skill/scripts/kcpredict_ict.py --input ./research.json --frequency 日�
 有 Python 包管理经验时，也可在自建 Python 3.12 虚拟环境中安装发行 wheel：
 
 ```sh
-python -m pip install "/path/to/kcpredict-0.0.4-py3-none-any.whl[predict,charts]"
+python -m pip install "/path/to/kcpredict-1.0.0-py3-none-any.whl[predict,charts]"
 kcpredict status
 ```
 

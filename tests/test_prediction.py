@@ -117,7 +117,8 @@ def test_invalid_asset_rejects_prediction_before_reusing_an_already_loaded_model
                             lookback=16, device='cpu', asset_path=tmp_path)
 
 
-def test_predict_preserves_samples_and_has_no_production_qualification(monkeypatch, tmp_path):
+@pytest.mark.parametrize("samples", [8, 128])
+def test_predict_preserves_samples_and_has_no_production_qualification(monkeypatch, tmp_path, samples):
     frame = bars()
     as_of = str(frame.date.iloc[-1].date())
     future = pd.bdate_range(frame.date.iloc[-1] + pd.Timedelta(days=1), periods=5)
@@ -127,9 +128,9 @@ def test_predict_preserves_samples_and_has_no_production_qualification(monkeypat
     monkeypatch.setattr(prediction, "_source_identity", lambda: {"vendor": "fixture"})
     monkeypatch.setattr(prediction, "_load_model", lambda *_: (None, None, inference, True))
     result = prediction.predict(frame, future, symbol="000001.SZ", as_of=as_of, lookback=16,
-                                 device="cpu", asset_path=tmp_path, calendar_verified=True,
+                                 device="cpu", samples=samples, asset_path=tmp_path, calendar_verified=True,
                                  calendar_identity="test_calendar")
-    assert np.asarray(result["samples"]).shape == (8, 5, 6)
+    assert np.asarray(result["samples"]).shape == (samples, 5, 6)
     assert result["quality"]["prediction_usable"]
     assert not result["qualification"]["positive_allocation_eligible"]
     json.dumps(result, allow_nan=False)
@@ -138,6 +139,15 @@ def test_predict_preserves_samples_and_has_no_production_qualification(monkeypat
                                       lookback=16, device="cpu", asset_path=tmp_path)
     assert not no_calendar["quality"]["prediction_usable"]
     assert no_calendar["cache_key"] != result["cache_key"]
+
+
+@pytest.mark.parametrize("samples", [0, 129])
+def test_sample_count_outside_supported_range_rejects_before_model_load(monkeypatch, samples):
+    monkeypatch.setattr(prediction, "_load_model", lambda *_: pytest.fail("invalid sample count loaded a model"))
+    frame = bars()
+    with pytest.raises(ValueError, match="samples must be an integer in 1–128"):
+        prediction.predict(frame, pd.bdate_range("2026-03-01", periods=5), symbol="000001.SZ",
+                           as_of=str(frame.date.iloc[-1].date()), lookback=16, samples=samples)
 
 
 def test_cancel_prevents_model_loading(monkeypatch):

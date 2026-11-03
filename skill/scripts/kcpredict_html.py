@@ -70,6 +70,7 @@ def build_payload(data: dict) -> dict:
     result = {"schema":"kcpredict_html_data_v1", "meta":{key:meta.get(key) for key in
         ("symbol", "requested_end", "as_of", "data_end", "months", "timezone", "price_basis", "history_fingerprint", "data_version")},
         "bars":copy.deepcopy(bars), "pens":copy.deepcopy(data.get("pens", [])),
+        "layers":copy.deepcopy(data.get("layers", {})),
         "zones":copy.deepcopy(data.get("zones", [])), "prediction":copy.deepcopy(prediction),
         "quality":copy.deepcopy(data.get("quality", {})), "ict":copy.deepcopy(data.get("ict", {})),
         "structure":copy.deepcopy(data.get("structure", {})), "price_volume":copy.deepcopy(data.get("price_volume", {})),
@@ -96,6 +97,8 @@ def render_html(data: dict, output: Path) -> dict:
     payload = build_payload(data)
     template = Path(__file__).resolve().parents[1]/"assets"/"composite.html"
     text = template.read_text(encoding="utf-8")
+    text = text.replace("</style>", (template.parent / "lake-workbench.css").read_text(encoding="utf-8") + "\n</style>")
+    text = text.replace("__CHART_LAYERS_JS__", (template.parent / "chart-layers.js").read_text(encoding="utf-8"))
     encoded = json.dumps(payload, ensure_ascii=False, allow_nan=False, separators=(",", ":"))
     # JSON script contents are data even when a user's note contains </script>.
     encoded = encoded.replace("&", "\\u0026").replace("<", "\\u003c").replace(">", "\\u003e").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")

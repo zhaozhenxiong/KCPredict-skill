@@ -102,13 +102,14 @@ def test_default_workflow_preserves_quality_exit_two_without_retries(report, mon
     assert report.main(["--symbol", "002436.SZ", "--end", "2026-10-16", "--output-dir", str(folder)]) == 0
     manifest = load_manifest(folder)
     assert [step["name"] for step in manifest["steps"]] == ["status", "analyze", "predict", "ict", "chart", "html"]
-    assert manifest["parameters"] == {"lookback": 128, "horizon": 5, "samples": 64, "seed": 42,
-                                       "device": "auto", "temperature": .8, "top_p": .9}
+    assert manifest["parameters"] == {"lookback": 128, "horizon": 5, "samples": 128, "seed": 42,
+                                       "device": "cuda", "temperature": .8, "top_p": .9}
     assert manifest["months"] == 3
     assert manifest["prediction_status"] == "quality_unusable"
     assert manifest["steps"][2]["exit_code"] == 2
     assert len([argv for argv in calls if "predict" in argv]) == 1
-    assert calls[2][calls[2].index("--samples") + 1] == "64"
+    assert calls[2][calls[2].index("--samples") + 1] == "128"
+    assert calls[2][calls[2].index("--device") + 1] == "cuda"
     assert not (folder / "prediction-unavailable.json").exists()
     assert "--prediction" in calls[-2]
     assert Path(calls[-2][calls[-2].index("--prediction") + 1]) == folder / "prediction.json"
